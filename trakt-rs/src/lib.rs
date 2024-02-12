@@ -1,5 +1,10 @@
 //! # A Pure Rust Library for the [Trakt.tv](https://trakt.tv) API
 //!
+//! [![Crates.io Version](https://img.shields.io/crates/v/trakt-rs)](https://crates.io/crates/trakt-rs)
+//! [![docs.rs](https://img.shields.io/docsrs/trakt-rs)](https://docs.rs/trakt-rs)
+//! ![Crates.io License](https://img.shields.io/crates/l/trakt-rs)
+//! [![Rust](https://github.com/ansg191/trakt/actions/workflows/rust.yml/badge.svg)](https://github.com/ansg191/trakt/actions/workflows/rust.yml)
+//!
 //! Trakt.tv API Documentation: [https://trakt.docs.apiary.io](https://trakt.docs.apiary.io)
 //!
 //! ## Usage
