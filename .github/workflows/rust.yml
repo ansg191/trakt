@@ -105,10 +105,13 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install tarpaulin
-        run: cargo install cargo-tarpaulin
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-tarpaulin
+          version: "^0.27"
 
       - name: Run tarpaulin
-        run: cargo tarpaulin --out Xml
+        run: cargo tarpaulin --skip-clean --out Xml
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
