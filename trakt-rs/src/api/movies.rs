@@ -19,6 +19,7 @@ pub mod favorited {
     )]
     pub struct Request {
         pub period: crate::smo::Period,
+        #[serde(flatten)]
         pub pagination: crate::utils::Pagination,
     }
 
@@ -61,6 +62,7 @@ pub mod popular {
     endpoint = "/movies/popular",
     )]
     pub struct Request {
+        #[serde(flatten)]
         pub pagination: crate::utils::Pagination,
     }
 
@@ -102,6 +104,7 @@ pub mod trending {
     endpoint = "/movies/trending",
     )]
     pub struct Request {
+        #[serde(flatten)]
         pub pagination: crate::utils::Pagination,
     }
 
@@ -148,6 +151,7 @@ pub mod played {
     )]
     pub struct Request {
         pub period: crate::smo::Period,
+        #[serde(flatten)]
         pub pagination: crate::utils::Pagination,
     }
 
@@ -190,6 +194,7 @@ pub mod watched {
     )]
     pub struct Request {
         pub period: crate::smo::Period,
+        #[serde(flatten)]
         pub pagination: crate::utils::Pagination,
     }
 
@@ -232,6 +237,7 @@ pub mod collected {
     )]
     pub struct Request {
         pub period: crate::smo::Period,
+        #[serde(flatten)]
         pub pagination: crate::utils::Pagination,
     }
 
@@ -273,6 +279,7 @@ pub mod anticipated {
     endpoint = "/movies/anticipated",
     )]
     pub struct Request {
+        #[serde(flatten)]
         pub pagination: crate::utils::Pagination,
     }
 
@@ -348,6 +355,7 @@ pub mod updates {
     pub struct Request {
         #[serde(with = "time::serde::iso8601")]
         pub start_date: OffsetDateTime,
+        #[serde(flatten)]
         pub pagination: crate::utils::Pagination,
     }
 
@@ -386,6 +394,7 @@ pub mod updates_id {
     pub struct Request {
         #[serde(with = "time::serde::iso8601")]
         pub start_date: OffsetDateTime,
+        #[serde(flatten)]
         pub pagination: crate::utils::Pagination,
     }
 
@@ -586,6 +595,7 @@ pub mod comments {
     pub struct Request {
         pub id: String,
         pub sort: Sort,
+        #[serde(flatten)]
         pub pagination: crate::utils::Pagination,
     }
 
@@ -901,5 +911,37 @@ pub mod watching {
                 items: crate::utils::handle_response_body(&response, http::StatusCode::OK)?,
             })
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Request;
+
+    #[test]
+    pub fn test_popular() {
+        let ctx = crate::Context {
+            base_url: "https://api.trakt.tv",
+            client_id: "abc",
+            oauth_token: None,
+        };
+
+        let request = popular::Request::default();
+        let http_req: http::Request<Vec<u8>> = request.try_into_http_request(ctx).unwrap();
+
+        assert_eq!(
+            http_req.uri(),
+            "https://api.trakt.tv/movies/popular?page=1&limit=10"
+        );
+        assert_eq!(http_req.method(), http::Method::GET);
+        assert_eq!(
+            http_req.headers().get("Content-Type").unwrap(),
+            "application/json"
+        );
+        assert_eq!(http_req.headers().get("trakt-api-key").unwrap(), "abc");
+        assert_eq!(http_req.headers().get("trakt-api-version").unwrap(), "2");
+        assert_eq!(http_req.headers().get("Authorization"), None);
+        assert!(http_req.body().is_empty());
     }
 }
