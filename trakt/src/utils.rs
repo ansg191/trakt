@@ -35,7 +35,7 @@ pub struct PaginationResponse<T> {
 }
 
 impl<T> PaginationResponse<T> {
-    pub fn from_headers(items: Vec<T>, map: &HeaderMap) -> Result<Self, DeserializeError> {
+    pub(crate) fn from_headers(items: Vec<T>, map: &HeaderMap) -> Result<Self, DeserializeError> {
         let current_page = parse_from_header(map, "X-Pagination-Page")?;
         let items_per_page = parse_from_header(map, "X-Pagination-Limit")?;
         let total_pages = parse_from_header(map, "X-Pagination-Page-Count")?;

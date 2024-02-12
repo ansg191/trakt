@@ -98,6 +98,15 @@ impl TwoLetter {
         Self(bytes)
     }
 
+    /// Create a `TwoLetter` from bytes without checking if the bytes are valid UTF-8
+    ///
+    /// # Arguments
+    ///
+    /// * `bytes`: Bytes to convert to a `TwoLetter`
+    ///
+    /// # Safety
+    ///
+    /// The bytes must be valid UTF-8.
     #[must_use]
     pub const unsafe fn from_bytes_unchecked(bytes: [u8; 2]) -> Self {
         Self(bytes)
