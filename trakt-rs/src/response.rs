@@ -27,8 +27,8 @@ pub trait PaginatedResponse: Response {
     /// Returns a slice of the items in the current page of the paginated response.
     fn items(&self) -> &[Self::Item];
 
-    /// Returns the index of the next page of the paginated response.
-    fn next_page(&self) -> Option<usize>;
+    /// Returns the pagination of the next page of the paginated response.
+    fn next_page(&self) -> Option<crate::Pagination>;
 }
 
 #[derive(Debug, thiserror::Error)]

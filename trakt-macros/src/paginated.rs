@@ -43,7 +43,7 @@ pub fn derive_paginated(input: TokenStream) -> TokenStream {
                 &self.#i_field.items
             }
 
-            fn next_page(&self) -> Option<usize> {
+            fn next_page(&self) -> Option<crate::Pagination> {
                 self.#i_field.next_page()
             }
         }

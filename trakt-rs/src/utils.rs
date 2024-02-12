@@ -56,9 +56,9 @@ impl<T> PaginationResponse<T> {
 
     #[inline]
     #[must_use]
-    pub const fn next_page(&self) -> Option<usize> {
+    pub const fn next_page(&self) -> Option<Pagination> {
         if self.current_page < self.total_pages {
-            Some(self.current_page + 1)
+            Some(Pagination::new(self.current_page + 1, self.items_per_page))
         } else {
             None
         }
