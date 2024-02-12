@@ -12,8 +12,12 @@ pub enum ApiError {
     NotFound,
     #[error("Resource Already Exists")]
     AlreadyExists,
+    #[error("Resource Expired")]
+    Expired,
     #[error("Invalid Content-Type")]
     InvalidContentType,
+    #[error("User denied the request")]
+    Denied,
     #[error("Account limit exceeded")]
     AccountLimitExceeded,
     #[error("Validation Error")]
@@ -42,7 +46,9 @@ impl From<StatusCode> for ApiError {
             403 => Self::Forbidden,
             404 => Self::NotFound,
             409 => Self::AlreadyExists,
+            410 => Self::Expired,
             412 => Self::InvalidContentType,
+            418 => Self::Denied,
             420 => Self::AccountLimitExceeded,
             422 => Self::ValidationError,
             423 => Self::LockedUserAccount,
