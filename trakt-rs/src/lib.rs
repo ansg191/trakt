@@ -41,7 +41,7 @@
 //!
 //! // Create a request and convert it into an HTTP request
 //! let req = trakt_rs::api::movies::summary::Request {
-//!     id: "tt123456".to_string(),
+//!     id: trakt_rs::smo::Id::Imdb("tt123456".into()),
 //! };
 //! let http_req: http::Request<Vec<u8>> = req.try_into_http_request(ctx).unwrap();
 //!
