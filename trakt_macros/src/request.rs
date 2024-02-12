@@ -1,8 +1,9 @@
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
 use quote::{format_ident, quote};
-use syn::punctuated::Punctuated;
-use syn::{parse_macro_input, DeriveInput, Field, Fields, LitStr, Token, Type};
+use syn::{
+    parse_macro_input, punctuated::Punctuated, DeriveInput, Field, Fields, LitStr, Token, Type,
+};
 
 pub fn derive_request(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);

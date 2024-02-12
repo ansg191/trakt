@@ -712,9 +712,18 @@ mod tests {
             ]
         );
 
-        assert_eq!(parse_endpoint("/shows/{{id}}").unwrap_err(), Error::InvalidEndpoint);
-        assert_eq!(parse_endpoint("/shows/{id}}").unwrap_err(), Error::InvalidEndpoint);
-        assert_eq!(parse_endpoint("/shows/{id").unwrap_err(), Error::InvalidEndpoint);
+        assert_eq!(
+            parse_endpoint("/shows/{{id}}").unwrap_err(),
+            Error::InvalidEndpoint
+        );
+        assert_eq!(
+            parse_endpoint("/shows/{id}}").unwrap_err(),
+            Error::InvalidEndpoint
+        );
+        assert_eq!(
+            parse_endpoint("/shows/{id").unwrap_err(),
+            Error::InvalidEndpoint
+        );
     }
 
     #[test]
@@ -732,7 +741,10 @@ mod tests {
         let base_url = "https://example.com";
         let endpoint = "/shows/{id}";
         let params = Params { id: 1 };
-        let query = Query { page: 1, limit: None };
+        let query = Query {
+            page: 1,
+            limit: None,
+        };
 
         let url = construct_url(base_url, endpoint, &params, &query).unwrap();
         assert_eq!(url, "https://example.com/shows/1?page=1");

@@ -1,6 +1,18 @@
 use crate::error::ApiError;
 
 pub trait Response: Sized {
+    /// Converts an HTTP response into a result of `Self`, where `Self` refers to the implementing type.
+    ///
+    /// # Arguments
+    ///
+    /// * `response` - The HTTP response to convert.
+    ///
+    /// # Errors
+    ///
+    /// Will error if the HTTP response is not a succeeding status code as determined by the
+    /// type or if the response body cannot be deserialized into the implementing type.
+    ///
+    /// See [`FromHttpError`] for more details.
     fn try_from_http_response<T: AsRef<[u8]>>(
         response: http::Response<T>,
     ) -> Result<Self, FromHttpError>;
