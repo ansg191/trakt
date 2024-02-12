@@ -5,6 +5,7 @@ authors = ["Anshul Gupta <ansg191@anshulg.com>"]
 version = "0.1.1"
 edition = "2021"
 license = "MIT"
+documentation = "https://docs.rs/trakt-macros"
 repository = "https://github.com/ansg191/trakt"
 readme = "../README.md"
 keywords = ["trakt", "api", "macros", "macro"]
