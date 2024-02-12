@@ -1,5 +1,5 @@
 [package]
-name = "trakt"
+name = "trakt-rs"
 version = "0.1.0"
 edition = "2021"
 
@@ -17,4 +17,4 @@ serde_json = "1"
 serde_urlencoded = "0.7"
 thiserror = "1"
 time = { version = "0.3", features = ["formatting", "parsing", "serde"] }
-trakt_macros = { path = "../trakt_macros" }
+trakt-macros = { path = "../trakt-macros" }
