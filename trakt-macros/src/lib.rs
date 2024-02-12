@@ -1,6 +1,7 @@
 #![warn(
     clippy::pedantic,
     clippy::nursery,
+    clippy::cargo,
     clippy::as_underscore,
     clippy::clone_on_ref_ptr,
     clippy::format_push_string,
