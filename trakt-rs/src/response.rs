@@ -1,5 +1,6 @@
-use crate::error::ApiError;
+use crate::ApiError;
 
+/// A trait for converting an HTTP response into a result of `Self`.
 pub trait Response: Sized {
     /// Converts an HTTP response into a result of `Self`, where `Self` refers to the implementing type.
     ///
@@ -18,11 +19,15 @@ pub trait Response: Sized {
     ) -> Result<Self, FromHttpError>;
 }
 
+/// A sub-trait of `Response` for paginated responses.
 pub trait PaginatedResponse: Response {
+    /// The type of item that the paginated response contains.
     type Item;
 
+    /// Returns a slice of the items in the current page of the paginated response.
     fn items(&self) -> &[Self::Item];
 
+    /// Returns the index of the next page of the paginated response.
     fn next_page(&self) -> Option<usize>;
 }
 

@@ -1,3 +1,53 @@
+//! # A Pure Rust Library for the [Trakt.tv](https://trakt.tv) API
+//!
+//! Trakt.tv API Documentation: [https://trakt.docs.apiary.io](https://trakt.docs.apiary.io)
+//!
+//! ## Usage
+//!
+//! This library does not provide a client for making HTTP(s) requests.
+//! That is left to the user. This enables the user to use any HTTP client they prefer
+//! (e.g. `reqwest`, `hyper`, `isahc`, etc.) with any TLS backend (e.g. `native-tls`, `rustls`, etc.)
+//! in a synchronous or asynchronous manner.
+//!
+//! Instead, the library provides a set of request and response types that can be converted into the
+//! general purpose [`http::Request`] and [`http::Response`] types.
+//! The types fill out the entirety of the HTTP request, including the URL, headers, and body.
+//! However, the user may still modify the request before sending it.
+//!
+//! The advantage of this approach is that the user has infinite flexibility in how they make requests.
+//! They can use any HTTP client, any TLS backend, and any request/response handling mechanism.
+//! Additionally, the user is free to make modifications to the request before sending it or the
+//! response after receiving it.
+//!
+//! This also means this library has a smaller dependency tree, as it does not depend on
+//! runtime or HTTP client libraries.
+//!
+//! ### Example
+//!
+//! ```no_run
+//! use trakt_rs::{Request, Response};
+//!
+//! // Context required for all requests
+//! let ctx = trakt_rs::Context {
+//!     base_url: "https://api.trakt.tv",
+//!     client_id: "client_id",
+//!     oauth_token: None,
+//! };
+//!
+//! // Create a request and convert it into an HTTP request
+//! let req = trakt_rs::api::movies::summary::Request {
+//!     id: "tt123456".to_string(),
+//! };
+//! let http_req: http::Request<Vec<u8>> = req.try_into_http_request(ctx).unwrap();
+//!
+//! // Send the HTTP request using your preferred HTTP client
+//! let response = http::Response::new(vec![]);
+//!
+//! // Convert the HTTP response into a Trakt response
+//! let trakt_response = trakt_rs::api::movies::summary::Response::try_from_http_response(response).unwrap();
+//!
+//! println!("Movie: {:?}", trakt_response.item);
+//! ```
 #![warn(
     clippy::pedantic,
     clippy::nursery,
@@ -11,13 +61,15 @@
 #![allow(clippy::module_name_repetitions)]
 
 pub mod api;
-pub mod error;
+mod error;
 mod request;
 mod response;
 pub mod smo;
 mod url;
 mod utils;
 
+pub use error::ApiError;
 pub use request::*;
 pub use response::*;
+pub use url::UrlError;
 pub use utils::{Pagination, PaginationResponse};

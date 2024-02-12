@@ -1,4 +1,13 @@
+//! Authentication endpoints
+//!
+//! <https://trakt.docs.apiary.io/#reference/authentication-oauth>
+//! <https://trakt.docs.apiary.io/#reference/authentication-devices>
+
 pub mod token {
+    //! Exchange authorization code for an access & refresh token
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/authentication-oauth/get-token/exchange-code-for-access_token>
+
     use bytes::BufMut;
 
     use crate::{Context, FromHttpError, IntoHttpError, Metadata};
@@ -67,6 +76,10 @@ pub mod token {
 }
 
 pub mod exchange {
+    //! Exchange refresh token for a new access token
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/authentication-oauth/revoke-token/revoke-an-access_token>
+
     use bytes::BufMut;
 
     use crate::{Context, IntoHttpError, Metadata};
