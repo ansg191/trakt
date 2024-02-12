@@ -50,7 +50,7 @@ enum Param<'a> {
     Value(String),
 }
 
-fn to_string<T: Serialize>(base_url: &str, endpoint: &str, value: &T) -> Result<String, Error> {
+fn to_string<T: Serialize>(base_url: &str, endpoint: &str, value: &T) -> Result<String, UrlError> {
     let mut serializer = UrlSerializer {
         url: base_url.to_owned(),
         parts: parse_endpoint(endpoint)?,
@@ -70,7 +70,7 @@ fn to_string<T: Serialize>(base_url: &str, endpoint: &str, value: &T) -> Result<
 /// - `Param("season")`
 /// - `Raw("/episodes/")`
 /// - `Param("episode")`
-fn parse_endpoint(s: &str) -> Result<Vec<Part>, Error> {
+fn parse_endpoint(s: &str) -> Result<Vec<Part>, UrlError> {
     let mut parts = Vec::new();
     let mut start = 0;
     let mut in_param = false;
@@ -79,7 +79,7 @@ fn parse_endpoint(s: &str) -> Result<Vec<Part>, Error> {
         if c == '{' {
             // If we're already in a parameter, this is an error
             if in_param {
-                return Err(Error::InvalidEndpoint);
+                return Err(UrlError::InvalidEndpoint);
             }
 
             // Mark that we're in a parameter
@@ -95,7 +95,7 @@ fn parse_endpoint(s: &str) -> Result<Vec<Part>, Error> {
         } else if c == '}' {
             // If we're not in a parameter, this is an error
             if !in_param {
-                return Err(Error::InvalidEndpoint);
+                return Err(UrlError::InvalidEndpoint);
             }
 
             // Mark that we're no longer in a parameter
@@ -113,7 +113,7 @@ fn parse_endpoint(s: &str) -> Result<Vec<Part>, Error> {
 
     // If we're still in a parameter at end of endpoint, this is an error
     if in_param {
-        return Err(Error::InvalidEndpoint);
+        return Err(UrlError::InvalidEndpoint);
     }
 
     // Add the last part of the string to the parts
@@ -125,13 +125,13 @@ fn parse_endpoint(s: &str) -> Result<Vec<Part>, Error> {
 }
 
 impl<'a> UrlSerializer<'a> {
-    pub fn end(self) -> Result<String, Error> {
+    pub fn end(self) -> Result<String, UrlError> {
         let mut url = self.url;
         for part in self.parts {
             match part {
                 Part::Raw(s) => url.push_str(s),
                 Part::Param(p) => match p {
-                    Param::Key(k) => return Err(Error::UnfilledField(k.to_owned())),
+                    Param::Key(k) => return Err(UrlError::UnfilledField(k.to_owned())),
                     Param::Value(v) => url.push_str(&v),
                 },
             }
@@ -143,7 +143,7 @@ impl<'a> UrlSerializer<'a> {
 impl<'a, 'b> ser::Serializer for &'a mut UrlSerializer<'b> {
     type Ok = ();
 
-    type Error = Error;
+    type Error = UrlError;
     type SerializeSeq = ErrorSerializer;
     type SerializeTuple = ErrorSerializer;
     type SerializeTupleStruct = ErrorSerializer;
@@ -153,59 +153,59 @@ impl<'a, 'b> ser::Serializer for &'a mut UrlSerializer<'b> {
     type SerializeStructVariant = ErrorSerializer;
 
     fn serialize_bool(self, _v: bool) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_i8(self, _v: i8) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_i16(self, _v: i16) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_i32(self, _v: i32) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_i64(self, _v: i64) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_u8(self, _v: u8) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_u16(self, _v: u16) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_u32(self, _v: u32) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_u64(self, _v: u64) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_f32(self, _v: f32) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_f64(self, _v: f64) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_char(self, _v: char) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_str(self, _v: &str) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_bytes(self, _v: &[u8]) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
@@ -230,7 +230,7 @@ impl<'a, 'b> ser::Serializer for &'a mut UrlSerializer<'b> {
         _variant_index: u32,
         _variant: &'static str,
     ) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_newtype_struct<T: ?Sized + Serialize>(
@@ -248,15 +248,15 @@ impl<'a, 'b> ser::Serializer for &'a mut UrlSerializer<'b> {
         _variant: &'static str,
         _value: &T,
     ) -> Result<Self::Ok, Self::Error> {
-        Err(Error::TopLevel)
+        Err(UrlError::TopLevel)
     }
 
     fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn serialize_tuple_struct(
@@ -264,7 +264,7 @@ impl<'a, 'b> ser::Serializer for &'a mut UrlSerializer<'b> {
         _name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeTupleStruct, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn serialize_tuple_variant(
@@ -274,11 +274,11 @@ impl<'a, 'b> ser::Serializer for &'a mut UrlSerializer<'b> {
         _variant: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn serialize_struct(
@@ -296,13 +296,13 @@ impl<'a, 'b> ser::Serializer for &'a mut UrlSerializer<'b> {
         _variant: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStructVariant, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 }
 
 impl<'a, 'b> ser::SerializeStruct for &'a mut UrlSerializer<'b> {
     type Ok = ();
-    type Error = Error;
+    type Error = UrlError;
 
     fn serialize_field<T: ?Sized + Serialize>(
         &mut self,
@@ -325,7 +325,7 @@ impl<'a, 'b> ser::SerializeStruct for &'a mut UrlSerializer<'b> {
         }
 
         // If the key was not found, this is an error
-        let part = part.ok_or(Error::KeyNotFound(key))?;
+        let part = part.ok_or(UrlError::KeyNotFound(key))?;
 
         // Serialize the value into the part
         let mut serializer = UrlValueSerializer::default();
@@ -361,7 +361,7 @@ const PATH_SET: &AsciiSet = &CONTROLS
 
 impl<'a> ser::Serializer for &'a mut UrlValueSerializer {
     type Ok = ();
-    type Error = Error;
+    type Error = UrlError;
 
     type SerializeSeq = ErrorSerializer;
     type SerializeTuple = ErrorSerializer;
@@ -498,11 +498,11 @@ impl<'a> ser::Serializer for &'a mut UrlValueSerializer {
     }
 
     fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn serialize_tuple_struct(
@@ -510,7 +510,7 @@ impl<'a> ser::Serializer for &'a mut UrlValueSerializer {
         _name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeTupleStruct, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn serialize_tuple_variant(
@@ -520,11 +520,11 @@ impl<'a> ser::Serializer for &'a mut UrlValueSerializer {
         _variant: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn serialize_struct(
@@ -532,7 +532,7 @@ impl<'a> ser::Serializer for &'a mut UrlValueSerializer {
         _name: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn serialize_struct_variant(
@@ -542,7 +542,7 @@ impl<'a> ser::Serializer for &'a mut UrlValueSerializer {
         _variant: &'static str,
         _len: usize,
     ) -> Result<Self::SerializeStructVariant, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 }
 
@@ -550,109 +550,109 @@ struct ErrorSerializer;
 
 impl ser::SerializeSeq for ErrorSerializer {
     type Ok = ();
-    type Error = Error;
+    type Error = UrlError;
 
     fn serialize_element<T: ?Sized + Serialize>(&mut self, _value: &T) -> Result<(), Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 }
 
 impl ser::SerializeTuple for ErrorSerializer {
     type Ok = ();
-    type Error = Error;
+    type Error = UrlError;
 
     fn serialize_element<T: ?Sized + Serialize>(&mut self, _value: &T) -> Result<(), Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 }
 
 impl ser::SerializeTupleStruct for ErrorSerializer {
     type Ok = ();
-    type Error = Error;
+    type Error = UrlError;
 
     fn serialize_field<T: ?Sized + Serialize>(&mut self, _value: &T) -> Result<(), Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 }
 
 impl ser::SerializeTupleVariant for ErrorSerializer {
     type Ok = ();
-    type Error = Error;
+    type Error = UrlError;
 
     fn serialize_field<T: ?Sized + Serialize>(&mut self, _value: &T) -> Result<(), Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 }
 
 impl ser::SerializeMap for ErrorSerializer {
     type Ok = ();
-    type Error = Error;
+    type Error = UrlError;
 
     fn serialize_key<T: ?Sized + Serialize>(&mut self, _key: &T) -> Result<(), Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn serialize_value<T: ?Sized + Serialize>(&mut self, _value: &T) -> Result<(), Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 }
 
 impl ser::SerializeStruct for ErrorSerializer {
     type Ok = ();
-    type Error = Error;
+    type Error = UrlError;
 
     fn serialize_field<T: ?Sized + Serialize>(
         &mut self,
         _key: &'static str,
         _value: &T,
     ) -> Result<(), Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 }
 
 impl ser::SerializeStructVariant for ErrorSerializer {
     type Ok = ();
-    type Error = Error;
+    type Error = UrlError;
 
     fn serialize_field<T: ?Sized + Serialize>(
         &mut self,
         _key: &'static str,
         _value: &T,
     ) -> Result<(), Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Err(Error::ValueNotSupported)
+        Err(UrlError::ValueNotSupported)
     }
 }
 
 #[derive(Debug, PartialEq, Eq, thiserror::Error)]
-pub enum Error {
+pub enum UrlError {
     #[error("{0}")]
     Message(String),
     #[error("Top level serializer only supports structs")]
@@ -667,7 +667,7 @@ pub enum Error {
     UnfilledField(String),
 }
 
-impl ser::Error for Error {
+impl ser::Error for UrlError {
     fn custom<T: Display>(msg: T) -> Self {
         Self::Message(msg.to_string())
     }
@@ -714,15 +714,15 @@ mod tests {
 
         assert_eq!(
             parse_endpoint("/shows/{{id}}").unwrap_err(),
-            Error::InvalidEndpoint
+            UrlError::InvalidEndpoint
         );
         assert_eq!(
             parse_endpoint("/shows/{id}}").unwrap_err(),
-            Error::InvalidEndpoint
+            UrlError::InvalidEndpoint
         );
         assert_eq!(
             parse_endpoint("/shows/{id").unwrap_err(),
-            Error::InvalidEndpoint
+            UrlError::InvalidEndpoint
         );
     }
 

@@ -1,8 +1,11 @@
 use http::{header::AsHeaderName, HeaderMap, StatusCode};
 use serde::Serialize;
 
-use crate::{error::ApiError, DeserializeError, FromHttpError, HeaderError};
+use crate::{ApiError, DeserializeError, FromHttpError, HeaderError};
 
+/// `Pagination` struct is used to specify the page number and the maximum number of items to be shown per page.
+///
+/// Default values are `page = 1` and `limit = 10`.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize)]
 pub struct Pagination {
     pub page: usize,
@@ -25,6 +28,7 @@ impl Pagination {
     }
 }
 
+/// `PaginationResponse` struct is used to store the paginated response from the API.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct PaginationResponse<T> {
     pub items: Vec<T>,

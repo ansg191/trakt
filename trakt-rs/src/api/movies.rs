@@ -1,4 +1,12 @@
+//! Movie related endpoints
+//!
+//! <https://trakt.docs.apiary.io/#reference/movies>
+
 pub mod favorited {
+    //! Get the most favorited movies.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/favorited>
+
     use http::StatusCode;
     use serde::Deserialize;
 
@@ -40,6 +48,9 @@ pub mod favorited {
 }
 
 pub mod popular {
+    //! Get popular movies.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/popular/get-popular-movies>
     use http::StatusCode;
 
     use crate::{smo::Movie, utils::handle_response_body, FromHttpError, PaginationResponse};
@@ -73,6 +84,9 @@ pub mod popular {
 }
 
 pub mod trending {
+    //! Get trending movies.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/trending/get-trending-movies>
     use http::StatusCode;
     use serde::Deserialize;
 
@@ -123,7 +137,10 @@ pub mod trending {
     }
 }
 
-pub mod playing {
+pub mod played {
+    //! Get the most played movies in a specific time period.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/played/get-the-most-played-movies>
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
     #[trakt(
     response = Response,
@@ -163,6 +180,9 @@ pub mod playing {
 }
 
 pub mod watched {
+    //! Get the most watched movies in a specific time period.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/watched/get-the-most-watched-movies>
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
     #[trakt(
     response = Response,
@@ -202,6 +222,9 @@ pub mod watched {
 }
 
 pub mod collected {
+    //! Get the most collected movies in a specific time period.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/collected/get-the-most-collected-movies>
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
     #[trakt(
     response = Response,
@@ -241,6 +264,9 @@ pub mod collected {
 }
 
 pub mod anticipated {
+    //! Get the most anticipated movies.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/anticipated/get-the-most-anticipated-movies>
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
     #[trakt(
     response = Response,
@@ -277,19 +303,19 @@ pub mod anticipated {
 }
 
 pub mod boxoffice {
-    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    //! Get the top 10 box office movies.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/box-office/get-the-weekend-box-office>
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, trakt_macros::Request)]
     #[trakt(
     response = Response,
     endpoint = "/movies/boxoffice",
     )]
-    pub struct Request {
-        pub pagination: crate::utils::Pagination,
-    }
+    pub struct Request;
 
-    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Paginated)]
+    #[derive(Debug, Clone, Eq, PartialEq)]
     pub struct Response {
-        #[trakt(pagination)]
-        pub items: crate::PaginationResponse<ResponseItem>,
+        pub movies: Vec<ResponseItem>,
     }
 
     #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize)]
@@ -302,17 +328,16 @@ pub mod boxoffice {
         fn try_from_http_response<T: AsRef<[u8]>>(
             response: http::Response<T>,
         ) -> Result<Self, crate::FromHttpError> {
-            let body: Vec<ResponseItem> =
-                crate::utils::handle_response_body(&response, http::StatusCode::OK)?;
-
-            let items = crate::PaginationResponse::from_headers(body, response.headers())?;
-
-            Ok(Self { items })
+            let movies = crate::utils::handle_response_body(&response, http::StatusCode::OK)?;
+            Ok(Self { movies })
         }
     }
 }
 
 pub mod updates {
+    //! Get all movies updated since a specific date.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/box-office/get-recently-updated-movies>
     use time::OffsetDateTime;
 
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
@@ -347,6 +372,10 @@ pub mod updates {
 }
 
 pub mod updates_id {
+    //! Get recently update movie IDs since a specific date.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/updated-ids/get-recently-updated-movie-trakt-ids>
+
     use time::OffsetDateTime;
 
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
@@ -378,6 +407,10 @@ pub mod updates_id {
 }
 
 pub mod summary {
+    //! Get a single movie's details.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/summary/get-a-movie>
+
     use http::StatusCode;
 
     use crate::utils::handle_response_body;
@@ -405,6 +438,10 @@ pub mod summary {
 }
 
 pub mod aliases {
+    //! Get all title aliases for a movie.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/aliases/get-all-movie-aliases>
+
     use serde::Deserialize;
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
@@ -435,6 +472,10 @@ pub mod aliases {
 }
 
 pub mod releases {
+    //! Get all releases for a movie.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/releases/get-all-movie-releases>
+
     use serde::Deserialize;
 
     use crate::smo::Country;
@@ -484,6 +525,10 @@ pub mod releases {
 }
 
 pub mod translations {
+    //! Get all translations for a movie.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/translations/get-all-movie-translations>
+
     use serde::Deserialize;
 
     use crate::smo::{Country, Language};
@@ -565,6 +610,10 @@ pub mod lists {
 }
 
 pub mod people {
+    //! Get all people for a movie.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/lists/get-all-people-for-a-movie>
+
     use serde::Deserialize;
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
@@ -622,6 +671,10 @@ pub mod people {
 }
 
 pub mod ratings {
+    //! Get rating distribution for a movie.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/ratings/get-movie-ratings>
+
     use serde::Deserialize;
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
