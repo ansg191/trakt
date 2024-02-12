@@ -1,7 +1,7 @@
 use bytes::BufMut;
 use http::{header::InvalidHeaderValue, Method};
 
-use crate::response::{PaginatedResponse, Response};
+use crate::response::Response;
 
 pub trait Request: Sized + Clone {
     type Response: Response;
@@ -22,19 +22,6 @@ pub trait Request: Sized + Clone {
     fn try_into_http_request<T: Default + BufMut>(
         self,
         ctx: Context,
-    ) -> Result<http::Request<T>, IntoHttpError>;
-}
-
-pub trait PaginatedRequest: Request
-where
-    Self::Response: PaginatedResponse,
-{
-    fn try_into_http_request_with_page<T: Default + BufMut>(
-        self,
-        base_url: &str,
-        token: Option<&str>,
-        page: usize,
-        limit: usize,
     ) -> Result<http::Request<T>, IntoHttpError>;
 }
 
