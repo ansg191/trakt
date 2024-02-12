@@ -566,7 +566,81 @@ pub mod translations {
 }
 
 pub mod comments {
-    //! TODO: Implement
+    //! Get all comments for a movie.
+    //!
+    //! If oauth is provided, comments from blocked users will be filtered out.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/comments/get-all-movie-comments>
+
+    use serde::{Deserialize, Serialize};
+    use time::OffsetDateTime;
+
+    use crate::FromHttpError;
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/movies/{id}/comments/{sort}",
+    auth = Optional,
+    )]
+    pub struct Request {
+        pub id: String,
+        pub sort: Sort,
+        pub pagination: crate::utils::Pagination,
+    }
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize)]
+    #[serde(rename_all = "lowercase")]
+    pub enum Sort {
+        #[default]
+        Newest,
+        Oldest,
+        Likes,
+        Replies,
+        Highest,
+        Lowest,
+        Plays,
+    }
+
+    #[derive(Debug, Clone, trakt_macros::Paginated)]
+    pub struct Response {
+        #[trakt(pagination)]
+        pub items: crate::PaginationResponse<ResponseItem>,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
+    pub struct ResponseItem {
+        pub id: u32,
+        pub parent_id: Option<u32>,
+        #[serde(with = "time::serde::iso8601")]
+        pub created_at: OffsetDateTime,
+        #[serde(with = "time::serde::iso8601")]
+        pub updated_at: OffsetDateTime,
+        pub comment: String,
+        pub spoiler: bool,
+        pub review: bool,
+        pub replies: u32,
+        pub likes: u32,
+        pub user_stats: UserStats,
+        pub user: crate::smo::User,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
+    pub struct UserStats {
+        pub rating: u8,
+        pub play_count: u32,
+        pub completed_count: u32,
+    }
+
+    impl crate::Response for Response {
+        fn try_from_http_response<T: AsRef<[u8]>>(
+            response: http::Response<T>,
+        ) -> Result<Self, FromHttpError> {
+            let body = crate::utils::handle_response_body(&response, http::StatusCode::OK)?;
+            let items = crate::PaginationResponse::from_headers(body, response.headers())?;
+            Ok(Self { items })
+        }
+    }
 }
 
 pub mod lists {
