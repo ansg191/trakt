@@ -1,7 +1,14 @@
 [package]
-name = "trakt"
+name = "trakt-rs"
+description = "A Rust library for the Trakt.tv API"
+authors = ["Anshul Gupta <ansg191@anshulg.com>"]
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+repository = "https://github.com/ansg191/trakt"
+readme = "../README.md"
+keywords = ["trakt", "api", "client"]
+categories = ["api-bindings"]
 
 [features]
 default = []
@@ -17,4 +24,4 @@ serde_json = "1"
 serde_urlencoded = "0.7"
 thiserror = "1"
 time = { version = "0.3", features = ["formatting", "parsing", "serde"] }
-trakt_macros = { path = "../trakt_macros" }
+trakt-macros = { workspace = true }

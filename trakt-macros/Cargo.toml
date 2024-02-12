@@ -1,0 +1,19 @@
+[package]
+name = "trakt-macros"
+description = "Procedural macros for the trakt-rs crate"
+authors = ["Anshul Gupta <ansg191@anshulg.com>"]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/ansg191/trakt"
+readme = "../README.md"
+keywords = ["trakt", "api", "macros", "macro"]
+categories = ["api-bindings", "development-tools::procedural-macro-helpers"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["full"] }
