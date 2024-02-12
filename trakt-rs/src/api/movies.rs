@@ -916,13 +916,57 @@ pub mod watching {
 
 #[cfg(test)]
 mod tests {
+    use httpmock::prelude::*;
+    use isahc::ReadResponseExt;
+    use serde_json::json;
+
     use super::*;
-    use crate::Request;
+    use crate::{PaginatedResponse, Request, Response};
 
     #[test]
     pub fn test_popular() {
+        let server = MockServer::start();
+
+        let popular_mock = server.mock(|when, then| {
+            when.method(GET)
+                .path("/movies/popular")
+                .header("Content-Type", "application/json")
+                .header("trakt-api-key", "abc")
+                .header("trakt-api-version", "2")
+                .query_param("page", "1")
+                .query_param("limit", "10");
+            then.status(200)
+                .header("Content-Type", "application/json")
+                .header("X-Pagination-Page", "1")
+                .header("X-Pagination-Limit", "10")
+                .header("X-Pagination-Page-Count", "1")
+                .header("X-Pagination-Item-Count", "2")
+                .json_body(json!([
+                    {
+                        "title": "The Dark Knight",
+                        "year": 2008,
+                        "ids": {
+                            "trakt": 16,
+                            "slug": "the-dark-knight-2008",
+                            "imdb": "tt0468569",
+                            "tmdb": 155
+                        }
+                    },
+                    {
+                        "title": "Fight Club",
+                        "year": 1999,
+                        "ids": {
+                            "trakt": 727,
+                            "slug": "fight-club-1999",
+                            "imdb": "tt0137523",
+                            "tmdb": 550
+                        }
+                    }
+                ]));
+        });
+
         let ctx = crate::Context {
-            base_url: "https://api.trakt.tv",
+            base_url: &server.base_url(),
             client_id: "abc",
             oauth_token: None,
         };
@@ -932,7 +976,7 @@ mod tests {
 
         assert_eq!(
             http_req.uri(),
-            "https://api.trakt.tv/movies/popular?page=1&limit=10"
+            &*format!("{}/movies/popular?page=1&limit=10", server.base_url())
         );
         assert_eq!(http_req.method(), http::Method::GET);
         assert_eq!(
@@ -943,5 +987,24 @@ mod tests {
         assert_eq!(http_req.headers().get("trakt-api-version").unwrap(), "2");
         assert_eq!(http_req.headers().get("Authorization"), None);
         assert!(http_req.body().is_empty());
+
+        let mut response = isahc::send(http_req).unwrap();
+        let bytes = response.bytes().unwrap();
+        let (parts, _) = response.into_parts();
+        let response = http::Response::from_parts(parts, bytes);
+
+        let response = popular::Response::try_from_http_response(response).unwrap();
+
+        assert_eq!(response.items().len(), 2);
+        assert_eq!(response.items()[0].title, "The Dark Knight");
+        assert_eq!(response.items()[0].year, 2008);
+        assert_eq!(response.items()[0].ids.trakt, Some(16));
+        assert_eq!(response.items()[1].title, "Fight Club");
+        assert_eq!(response.items()[1].year, 1999);
+        assert_eq!(response.items()[1].ids.trakt, Some(727));
+
+        assert_eq!(response.next_page(), None);
+
+        popular_mock.assert();
     }
 }
