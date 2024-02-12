@@ -726,3 +726,106 @@ pub mod ratings {
         }
     }
 }
+
+pub mod related {
+    //! Get related movies.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/related/get-related-movies>
+
+    use crate::FromHttpError;
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/movies/{id}/related",
+    )]
+    pub struct Request {
+        pub id: String,
+    }
+
+    #[derive(Debug, Clone, trakt_macros::Paginated)]
+    pub struct Response {
+        #[trakt(pagination)]
+        pub items: crate::PaginationResponse<crate::smo::Movie>,
+    }
+
+    impl crate::Response for Response {
+        fn try_from_http_response<T: AsRef<[u8]>>(
+            response: http::Response<T>,
+        ) -> Result<Self, FromHttpError> {
+            let body = crate::utils::handle_response_body(&response, http::StatusCode::OK)?;
+            let items = crate::PaginationResponse::from_headers(body, response.headers())?;
+            Ok(Self { items })
+        }
+    }
+}
+
+pub mod stats {
+    //! Get stats for a movie.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/related/get-movie-stats>
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/movies/{id}/stats",
+    )]
+    pub struct Request {
+        pub id: String,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize)]
+    pub struct Response {
+        pub watchers: u32,
+        pub plays: u32,
+        pub collectors: u32,
+        pub comments: u32,
+        pub lists: u32,
+        pub votes: u32,
+        pub favorited: u32,
+    }
+
+    impl crate::Response for Response {
+        fn try_from_http_response<T: AsRef<[u8]>>(
+            response: http::Response<T>,
+        ) -> Result<Self, crate::FromHttpError> {
+            crate::utils::handle_response_body(&response, http::StatusCode::OK)
+        }
+    }
+}
+
+pub mod studio {
+    //! TODO: Implement
+}
+
+pub mod watching {
+    //! Get users currently watching a movie.
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/watching/get-users-currently-watching-a-movie>
+
+    use crate::FromHttpError;
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/movies/{id}/watching",
+    )]
+    pub struct Request {
+        pub id: String,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq)]
+    pub struct Response {
+        pub items: Vec<crate::smo::User>,
+    }
+
+    impl crate::Response for Response {
+        fn try_from_http_response<T: AsRef<[u8]>>(
+            response: http::Response<T>,
+        ) -> Result<Self, FromHttpError> {
+            Ok(Self {
+                items: crate::utils::handle_response_body(&response, http::StatusCode::OK)?,
+            })
+        }
+    }
+}
