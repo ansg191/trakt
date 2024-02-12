@@ -86,11 +86,10 @@ pub fn derive_request(input: TokenStream) -> TokenStream {
 
 fn parse_url_params(endpoint: &str) -> Vec<&str> {
     let mut params = vec![];
-    for c in endpoint.chars() {
+    for (i, c) in endpoint.char_indices() {
         if c == '{' {
-            let start = endpoint.find(c).unwrap();
-            let end = endpoint[start..].find('}').unwrap();
-            params.push(&endpoint[start + 1..start + end]);
+            let end = endpoint[i..].find('}').unwrap();
+            params.push(&endpoint[i + 1..i + end]);
         }
     }
     params

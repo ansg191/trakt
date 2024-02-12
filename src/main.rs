@@ -1,4 +1,4 @@
-const CLIENT_ID: &str = "";
+const CLIENT_ID: &str = "864ba5eafb3a02a474f43aa3422a181dfe34731b33c9f8fc845b9fbb9bc9b523";
 
 #[tokio::main]
 async fn main() {
