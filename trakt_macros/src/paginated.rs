@@ -1,8 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
-use syn::spanned::Spanned;
-use syn::{parse_macro_input, DeriveInput};
+use syn::{parse_macro_input, spanned::Spanned, DeriveInput};
 
 pub fn derive_paginated(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);

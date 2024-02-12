@@ -1,5 +1,5 @@
-mod request;
 mod paginated;
+mod request;
 
 use proc_macro::TokenStream;
 
