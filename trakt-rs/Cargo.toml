@@ -27,3 +27,7 @@ smallstr = { version = "0.3.0", features = ["std", "union", "serde"] }
 thiserror = "1"
 time = { version = "0.3", features = ["formatting", "parsing", "serde"] }
 trakt-macros = { workspace = true }
+
+[dev-dependencies]
+httpmock = "0.7"
+isahc = "1.7"
