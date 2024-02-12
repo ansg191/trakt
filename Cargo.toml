@@ -1,0 +1,11 @@
+[package]
+name = "trakt"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+members = ["trakt-rs", "trakt_macros"]
+
+[dependencies]
+tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
+trakt-rs = { path = "trakt-rs" }
