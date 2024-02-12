@@ -418,7 +418,7 @@ pub mod summary {
     #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Request)]
     #[trakt(response = Response, endpoint = "/movies/{id}")]
     pub struct Request {
-        pub id: String,
+        pub id: crate::smo::Id,
     }
 
     #[derive(Debug, Clone, Eq, PartialEq)]
@@ -450,7 +450,7 @@ pub mod aliases {
     endpoint = "/movies/{id}/aliases",
     )]
     pub struct Request {
-        pub id: String,
+        pub id: crate::smo::Id,
     }
 
     pub struct Response(pub Vec<ResponseItem>);
@@ -486,7 +486,7 @@ pub mod releases {
     endpoint = "/movies/{id}/releases/{country}",
     )]
     pub struct Request {
-        pub id: String,
+        pub id: crate::smo::Id,
         pub country: Country,
     }
 
@@ -539,7 +539,7 @@ pub mod translations {
     endpoint = "/movies/{id}/translations/{language}",
     )]
     pub struct Request {
-        pub id: String,
+        pub id: crate::smo::Id,
         pub language: Language,
     }
 
@@ -696,7 +696,7 @@ pub mod people {
     endpoint = "/movies/{id}/people",
     )]
     pub struct Request {
-        pub id: String,
+        pub id: crate::smo::Id,
     }
 
     #[derive(Debug, Clone, Deserialize)]
@@ -757,7 +757,7 @@ pub mod ratings {
     endpoint = "/movies/{id}/ratings",
     )]
     pub struct Request {
-        pub id: String,
+        pub id: crate::smo::Id,
     }
 
     #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -814,7 +814,7 @@ pub mod related {
     endpoint = "/movies/{id}/related",
     )]
     pub struct Request {
-        pub id: String,
+        pub id: crate::smo::Id,
     }
 
     #[derive(Debug, Clone, trakt_macros::Paginated)]
@@ -845,7 +845,7 @@ pub mod stats {
     endpoint = "/movies/{id}/stats",
     )]
     pub struct Request {
-        pub id: String,
+        pub id: crate::smo::Id,
     }
 
     #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize)]
@@ -885,7 +885,7 @@ pub mod watching {
     endpoint = "/movies/{id}/watching",
     )]
     pub struct Request {
-        pub id: String,
+        pub id: crate::smo::Id,
     }
 
     #[derive(Debug, Clone, Eq, PartialEq)]

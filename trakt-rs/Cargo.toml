@@ -23,6 +23,7 @@ ryu = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_urlencoded = "0.7"
+smallstr = { version = "0.3.0", features = ["std", "union", "serde"] }
 thiserror = "1"
 time = { version = "0.3", features = ["formatting", "parsing", "serde"] }
 trakt-macros = { workspace = true }

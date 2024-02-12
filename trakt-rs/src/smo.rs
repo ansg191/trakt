@@ -3,13 +3,24 @@
 use std::fmt::Formatter;
 
 use serde::{de::Unexpected, Deserialize, Deserializer, Serialize, Serializer};
+use smallstr::SmallString;
+
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum Id {
+    Trakt(u64),
+    Slug(SmallString<[u8; 16]>),
+    Tvdb(u64),
+    Imdb(SmallString<[u8; 16]>),
+    Tmdb(u64),
+}
 
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Ids {
     pub trakt: Option<u64>,
-    pub slug: Option<String>,
+    pub slug: Option<SmallString<[u8; 16]>>,
     pub tvdb: Option<u64>,
-    pub imdb: Option<String>,
+    pub imdb: Option<SmallString<[u8; 16]>>,
     pub tmdb: Option<u64>,
 }
 
