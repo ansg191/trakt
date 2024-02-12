@@ -78,14 +78,15 @@ fn handle_field_attrs(input: &DeriveInput) -> syn::Result<&syn::Field> {
         }
     }
 
-    if let Some(ret) = ret {
-        Ok(ret)
-    } else {
-        Err(syn::Error::new(
-            Span::call_site(),
-            "missing #[trakt(pagination)] attribute",
-        ))
-    }
+    ret.map_or_else(
+        || {
+            Err(syn::Error::new(
+                Span::call_site(),
+                "missing #[trakt(pagination)] attribute",
+            ))
+        },
+        Ok,
+    )
 }
 
 /// Extracts the inner type of `PaginationResponse<T>` type.
@@ -119,17 +120,18 @@ fn extract_item(tp: &syn::Type) -> syn::Result<&syn::Type> {
         if let syn::GenericArgument::Type(t) = &args[0] {
             tp = Some(t);
             break;
-        } else {
-            return Err(syn::Error::new(args.span(), "expected a type argument"));
         }
+
+        return Err(syn::Error::new(args.span(), "expected a type argument"));
     }
 
-    if let Some(tp) = tp {
-        Ok(tp)
-    } else {
-        Err(syn::Error::new(
-            tp.span(),
-            "expected a PaginationResponse type",
-        ))
-    }
+    tp.map_or_else(
+        || {
+            Err(syn::Error::new(
+                tp.span(),
+                "expected a PaginationResponse type",
+            ))
+        },
+        Ok,
+    )
 }

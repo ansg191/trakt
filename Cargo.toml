@@ -1,3 +1,6 @@
 [workspace]
 members = ["trakt-rs", "trakt-macros"]
 resolver = "2"
+
+[workspace.dependencies]
+trakt-macros = { path = "trakt-macros", version = "0.1.0" }
