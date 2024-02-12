@@ -38,10 +38,10 @@
 //! let req = trakt_rs::api::movies::summary::Request {
 //!     id: "tt123456".to_string(),
 //! };
-//! let http_req = req.try_into_http_request(ctx).unwrap();
+//! let http_req: http::Request<Vec<u8>> = req.try_into_http_request(ctx).unwrap();
 //!
 //! // Send the HTTP request using your preferred HTTP client
-//! let response = http::Response::new(());
+//! let response = http::Response::new(vec![]);
 //!
 //! // Convert the HTTP response into a Trakt response
 //! let trakt_response = trakt_rs::api::movies::summary::Response::try_from_http_response(response).unwrap();
