@@ -54,7 +54,7 @@ pub fn derive_request(input: TokenStream) -> TokenStream {
             const METADATA: crate::Metadata = crate::Metadata {
                 endpoint: #endpoint,
                 method: ::http::Method::#method,
-                auth: #auth,
+                auth: crate::AuthRequirement::#auth,
             };
 
             fn try_into_http_request<T: Default + ::bytes::BufMut>(
@@ -75,9 +75,19 @@ pub fn derive_request(input: TokenStream) -> TokenStream {
                     .uri(url)
                     .header("Content-Type", "application/json")
                     .header("trakt-api-version", "2")
-                    .header("trakt-api-key", ctx.client_id)
-                    .body(T::default())?;
-                Ok(request)
+                    .header("trakt-api-key", ctx.client_id);
+
+                let request = match (Self::METADATA.auth, ctx.oauth_token) {
+                    (crate::AuthRequirement::None, _) | (crate::AuthRequirement::Optional, None) => request,
+                    (crate::AuthRequirement::Optional | crate::AuthRequirement::Required, Some(token)) => {
+                        request.header("Authorization", format!("Bearer {}", token))
+                    }
+                    (crate::AuthRequirement::Required, None) => {
+                        return Err(crate::IntoHttpError::MissingToken);
+                    }
+                };
+
+                Ok(request.body(T::default())?)
             }
         }
     };
@@ -99,7 +109,7 @@ fn parse_url_params(endpoint: &str) -> Vec<&str> {
 struct RequestAttrs {
     endpoint: LitStr,
     method: Ident,
-    auth: bool,
+    auth: Ident,
     response: Option<Type>,
 }
 
@@ -107,7 +117,7 @@ fn derive_request_attrs(input: &DeriveInput) -> syn::Result<RequestAttrs> {
     let mut ret = RequestAttrs {
         endpoint: LitStr::new("/", Span::call_site()),
         method: format_ident!("GET"),
-        auth: false,
+        auth: format_ident!("None"),
         response: None,
     };
 
@@ -127,7 +137,7 @@ fn derive_request_attrs(input: &DeriveInput) -> syn::Result<RequestAttrs> {
                     ret.method = value.parse()?;
                     Ok(())
                 } else if meta.path.is_ident("auth") {
-                    ret.auth = true;
+                    ret.auth = meta.value()?.parse()?;
                     Ok(())
                 } else {
                     Err(meta.error("unsupported attribute"))

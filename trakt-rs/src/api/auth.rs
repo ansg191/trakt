@@ -24,7 +24,7 @@ pub mod token {
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/token",
             method: http::Method::POST,
-            auth: false,
+            auth: crate::AuthRequirement::None,
         };
 
         fn try_into_http_request<T: Default + BufMut>(
@@ -96,7 +96,7 @@ pub mod exchange {
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/token",
             method: http::Method::POST,
-            auth: false,
+            auth: crate::AuthRequirement::None,
         };
 
         fn try_into_http_request<T: Default + BufMut>(
@@ -167,7 +167,7 @@ pub mod revoke {
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/revoke",
             method: http::Method::POST,
-            auth: false,
+            auth: crate::AuthRequirement::None,
         };
 
         fn try_into_http_request<T: Default + BufMut>(
@@ -227,7 +227,7 @@ pub mod device_code {
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/device/code",
             method: http::Method::POST,
-            auth: false,
+            auth: crate::AuthRequirement::None,
         };
 
         fn try_into_http_request<T: Default + BufMut>(
@@ -293,7 +293,7 @@ pub mod poll_token {
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/device/token",
             method: http::Method::POST,
-            auth: false,
+            auth: crate::AuthRequirement::None,
         };
 
         fn try_into_http_request<T: Default + BufMut>(

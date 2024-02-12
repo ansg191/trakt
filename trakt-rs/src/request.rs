@@ -46,8 +46,19 @@ pub struct Metadata {
     pub endpoint: &'static str,
     /// The HTTP method for the request.
     pub method: Method,
-    /// Whether the request requires authorization.
-    pub auth: bool,
+    /// Authorization requirement for the request.
+    pub auth: AuthRequirement,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
+pub enum AuthRequirement {
+    /// No authorization required.
+    #[default]
+    None,
+    /// Authorization is optional. Request may behave differently based on the presence of a token.
+    Optional,
+    /// Authorization is required. Request will fail if no token is provided.
+    Required,
 }
 
 /// Represents the universal context for an API request.
@@ -77,4 +88,6 @@ pub enum IntoHttpError {
     UrlParams(#[from] crate::url::UrlError),
     #[error("Query params error: {0}")]
     QueryParams(#[from] serde_urlencoded::ser::Error),
+    #[error("Missing oauth token")]
+    MissingToken,
 }
