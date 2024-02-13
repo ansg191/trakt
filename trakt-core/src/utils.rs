@@ -1,7 +1,7 @@
 use http::{header::AsHeaderName, HeaderMap, StatusCode};
 use serde::Serialize;
 
-use crate::{ApiError, DeserializeError, FromHttpError, HeaderError};
+use crate::error::{ApiError, DeserializeError, FromHttpError, HeaderError};
 
 /// `Pagination` struct is used to specify the page number and the maximum number of items to be shown per page.
 ///
@@ -39,7 +39,12 @@ pub struct PaginationResponse<T> {
 }
 
 impl<T> PaginationResponse<T> {
-    pub(crate) fn from_headers(items: Vec<T>, map: &HeaderMap) -> Result<Self, DeserializeError> {
+    /// Create a new `PaginationResponse` instance from items and Trakt.tv API response headers.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `DeserializeError` if the headers are missing or if the header values are not valid.
+    pub fn from_headers(items: Vec<T>, map: &HeaderMap) -> Result<Self, DeserializeError> {
         let current_page = parse_from_header(map, "X-Pagination-Page")?;
         let items_per_page = parse_from_header(map, "X-Pagination-Limit")?;
         let total_pages = parse_from_header(map, "X-Pagination-Page-Count")?;
@@ -65,6 +70,12 @@ impl<T> PaginationResponse<T> {
     }
 }
 
+/// Helper function to parse a header value to an integer.
+///
+/// # Errors
+///
+/// Returns a `DeserializeError` if the header is missing, if the header value is not a valid
+/// string, or if the string value cannot be parsed to an integer.
 pub fn parse_from_header<K: AsHeaderName>(
     map: &HeaderMap,
     key: K,
@@ -77,6 +88,15 @@ pub fn parse_from_header<K: AsHeaderName>(
         .map_err(DeserializeError::ParseInt)
 }
 
+/// Helper function to handle the response body from the API.
+///
+/// Will check if the response has the expected status code and will try to deserialize the
+/// response body.
+///
+/// # Errors
+///
+/// Returns a `FromHttpError` if the response status code is not the expected one or if the body
+/// failed to be deserialized.
 pub fn handle_response_body<B, T>(
     response: &http::Response<B>,
     expected: StatusCode,
