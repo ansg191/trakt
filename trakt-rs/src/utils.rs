@@ -91,3 +91,68 @@ where
         Err(FromHttpError::Api(ApiError::from(response.status())))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use http::HeaderValue;
+
+    use super::*;
+
+    #[test]
+    fn test_parse_from_header() {
+        let mut map = HeaderMap::new();
+        map.insert("B", HeaderValue::from_bytes(b"hello\xfa").unwrap());
+        map.insert("C", HeaderValue::from_static("hello"));
+        map.insert("D", HeaderValue::from_static("10"));
+
+        assert!(matches!(
+            parse_from_header(&map, "A"),
+            Err(DeserializeError::Header(HeaderError::MissingHeader))
+        ));
+        assert!(matches!(
+            parse_from_header(&map, "B"),
+            Err(DeserializeError::Header(HeaderError::ToStrError(_)))
+        ));
+        assert!(matches!(
+            parse_from_header(&map, "C"),
+            Err(DeserializeError::ParseInt(_))
+        ));
+        assert_eq!(parse_from_header(&map, "D").unwrap(), 10);
+    }
+
+    #[test]
+    fn test_handle_response_body_ok() {
+        let response = http::Response::builder()
+            .status(StatusCode::OK)
+            .body(b"\"hello\"")
+            .unwrap();
+        assert_eq!(
+            handle_response_body::<_, String>(&response, StatusCode::OK).unwrap(),
+            "hello"
+        );
+    }
+
+    #[test]
+    fn test_handle_response_body_bad_request() {
+        let response = http::Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(b"\"hello\"")
+            .unwrap();
+        assert!(matches!(
+            handle_response_body::<_, String>(&response, StatusCode::OK),
+            Err(FromHttpError::Api(ApiError::BadRequest))
+        ));
+    }
+
+    #[test]
+    fn test_handle_response_body_deserialize_error() {
+        let response = http::Response::builder()
+            .status(StatusCode::OK)
+            .body(b"\"hello\xfa\"")
+            .unwrap();
+        assert!(matches!(
+            handle_response_body::<_, String>(&response, StatusCode::OK),
+            Err(FromHttpError::Deserialize(DeserializeError::Json(_)))
+        ));
+    }
+}
