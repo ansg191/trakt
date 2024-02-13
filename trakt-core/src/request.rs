@@ -1,7 +1,7 @@
 use bytes::BufMut;
-use http::{header::InvalidHeaderValue, Method};
+use http::Method;
 
-use crate::response::Response;
+use crate::{error::IntoHttpError, response::Response};
 
 /// Trait for requests.
 ///
@@ -50,6 +50,7 @@ pub struct Metadata {
     pub auth: AuthRequirement,
 }
 
+/// Authorization requirement for an API request.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
 pub enum AuthRequirement {
     /// No authorization required.
@@ -73,21 +74,4 @@ pub struct Context<'a> {
     pub client_id: &'a str,
     /// The OAuth token for the API, if requesting an authenticated endpoint.
     pub oauth_token: Option<&'a str>,
-}
-
-/// Error type for converting a request into an HTTP request.
-#[derive(Debug, thiserror::Error)]
-pub enum IntoHttpError {
-    #[error("JSON Error: {0}")]
-    Json(#[from] serde_json::Error),
-    #[error("Invalid Header Value: {0}")]
-    Header(#[from] InvalidHeaderValue),
-    #[error("HTTP Error: {0}")]
-    Http(#[from] http::Error),
-    #[error("Url params error: {0}")]
-    UrlParams(#[from] crate::url::UrlError),
-    #[error("Query params error: {0}")]
-    QueryParams(#[from] serde_urlencoded::ser::Error),
-    #[error("Missing oauth token")]
-    MissingToken,
 }

@@ -1,10 +1,19 @@
-use std::fmt::Display;
-
 use percent_encoding::{AsciiSet, CONTROLS};
 use serde::{ser, Serialize};
 
-use crate::IntoHttpError;
+use crate::error::{IntoHttpError, UrlError};
 
+/// Constructs a complete URL from a base URL, an endpoint, and parameters.
+///
+/// - The `base_url` is the base URL of the API: `https://api.trakt.tv`.
+/// - The `endpoint` is the path of the specific endpoint with parameters enclosed in curly braces:
+/// `/shows/{id}/seasons/{season}/episodes/{episode}`.
+/// - The `params` is a struct that will be serialized into the parameters of the `endpoint`.
+/// - The `query` is a struct that will be serialized into the query parameters of the URL.
+///
+/// # Errors
+///
+/// Returns an [`IntoHttpError`] if the URL cannot be constructed.
 pub fn construct_url(
     base_url: &str,
     endpoint: &str,
@@ -648,28 +657,6 @@ impl ser::SerializeStructVariant for ErrorSerializer {
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
         Err(UrlError::ValueNotSupported)
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, thiserror::Error)]
-pub enum UrlError {
-    #[error("{0}")]
-    Message(String),
-    #[error("Top level serializer only supports structs")]
-    TopLevel,
-    #[error("Invalid endpoint")]
-    InvalidEndpoint,
-    #[error("Value not supported")]
-    ValueNotSupported,
-    #[error("Key not found: {0}")]
-    KeyNotFound(&'static str),
-    #[error("Unfilled field: {0}")]
-    UnfilledField(String),
-}
-
-impl ser::Error for UrlError {
-    fn custom<T: Display>(msg: T) -> Self {
-        Self::Message(msg.to_string())
     }
 }
 

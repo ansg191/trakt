@@ -9,8 +9,10 @@ pub mod token {
     //! <https://trakt.docs.apiary.io/#reference/authentication-oauth/get-token/exchange-code-for-access_token>
 
     use bytes::BufMut;
-
-    use crate::{Context, FromHttpError, IntoHttpError, Metadata};
+    use trakt_core::{
+        error::{FromHttpError, IntoHttpError},
+        Context, Metadata,
+    };
 
     #[derive(Debug, Clone, Eq, PartialEq)]
     pub struct Request {
@@ -19,19 +21,19 @@ pub mod token {
         pub redirect_uri: String,
     }
 
-    impl crate::Request for Request {
+    impl trakt_core::Request for Request {
         type Response = Response;
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/token",
             method: http::Method::POST,
-            auth: crate::AuthRequirement::None,
+            auth: trakt_core::AuthRequirement::None,
         };
 
         fn try_into_http_request<T: Default + BufMut>(
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let url = crate::url::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
+            let url = trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
 
             let body = T::default();
             let mut writer = body.writer();
@@ -66,11 +68,11 @@ pub mod token {
         pub created_at: i64,
     }
 
-    impl crate::Response for Response {
+    impl trakt_core::Response for Response {
         fn try_from_http_response<T: AsRef<[u8]>>(
             response: http::Response<T>,
         ) -> Result<Self, FromHttpError> {
-            crate::utils::handle_response_body(&response, http::StatusCode::OK)
+            trakt_core::handle_response_body(&response, http::StatusCode::OK)
         }
     }
 }
@@ -81,8 +83,10 @@ pub mod exchange {
     //! <https://trakt.docs.apiary.io/#reference/authentication-oauth/revoke-token/revoke-an-access_token>
 
     use bytes::BufMut;
-
-    use crate::{Context, IntoHttpError, Metadata};
+    use trakt_core::{
+        error::{FromHttpError, IntoHttpError},
+        Context, Metadata,
+    };
 
     #[derive(Debug, Clone, Eq, PartialEq)]
     pub struct Request {
@@ -91,19 +95,19 @@ pub mod exchange {
         pub redirect_uri: String,
     }
 
-    impl crate::Request for Request {
+    impl trakt_core::Request for Request {
         type Response = Response;
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/token",
             method: http::Method::POST,
-            auth: crate::AuthRequirement::None,
+            auth: trakt_core::AuthRequirement::None,
         };
 
         fn try_into_http_request<T: Default + BufMut>(
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let url = crate::url::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
+            let url = trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
 
             let body = T::default();
             let mut writer = body.writer();
@@ -138,11 +142,11 @@ pub mod exchange {
         pub created_at: i64,
     }
 
-    impl crate::Response for Response {
+    impl trakt_core::Response for Response {
         fn try_from_http_response<T: AsRef<[u8]>>(
             response: http::Response<T>,
-        ) -> Result<Self, crate::FromHttpError> {
-            crate::utils::handle_response_body(&response, http::StatusCode::OK)
+        ) -> Result<Self, FromHttpError> {
+            trakt_core::handle_response_body(&response, http::StatusCode::OK)
         }
     }
 }
@@ -153,8 +157,10 @@ pub mod revoke {
     //! <https://trakt.docs.apiary.io/#reference/authentication-oauth/revoke-token>
 
     use bytes::BufMut;
-
-    use crate::{utils::handle_response_body, Context, IntoHttpError, Metadata};
+    use trakt_core::{
+        error::{FromHttpError, IntoHttpError},
+        handle_response_body, Context, Metadata,
+    };
 
     #[derive(Debug, Clone, Eq, PartialEq)]
     pub struct Request {
@@ -162,19 +168,19 @@ pub mod revoke {
         pub client_secret: String,
     }
 
-    impl crate::Request for Request {
+    impl trakt_core::Request for Request {
         type Response = Response;
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/revoke",
             method: http::Method::POST,
-            auth: crate::AuthRequirement::None,
+            auth: trakt_core::AuthRequirement::None,
         };
 
         fn try_into_http_request<T: Default + BufMut>(
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let url = crate::url::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
+            let url = trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
 
             let body = T::default();
             let mut writer = body.writer();
@@ -200,10 +206,10 @@ pub mod revoke {
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
     pub struct Response;
 
-    impl crate::Response for Response {
+    impl trakt_core::Response for Response {
         fn try_from_http_response<T: AsRef<[u8]>>(
             response: http::Response<T>,
-        ) -> Result<Self, crate::FromHttpError> {
+        ) -> Result<Self, FromHttpError> {
             handle_response_body(&response, http::StatusCode::OK)?;
             Ok(Self)
         }
@@ -216,25 +222,27 @@ pub mod device_code {
     //! <https://trakt.docs.apiary.io/#reference/authentication-devices/device-code/generate-new-device-codes>
 
     use bytes::BufMut;
-
-    use crate::{Context, IntoHttpError, Metadata};
+    use trakt_core::{
+        error::{FromHttpError, IntoHttpError},
+        Context, Metadata,
+    };
 
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
     pub struct Request;
 
-    impl crate::Request for Request {
+    impl trakt_core::Request for Request {
         type Response = Response;
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/device/code",
             method: http::Method::POST,
-            auth: crate::AuthRequirement::None,
+            auth: trakt_core::AuthRequirement::None,
         };
 
         fn try_into_http_request<T: Default + BufMut>(
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let url = crate::url::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
+            let url = trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
 
             let body = T::default();
             let mut writer = body.writer();
@@ -264,11 +272,11 @@ pub mod device_code {
         pub interval: i64,
     }
 
-    impl crate::Response for Response {
+    impl trakt_core::Response for Response {
         fn try_from_http_response<T: AsRef<[u8]>>(
             response: http::Response<T>,
-        ) -> Result<Self, crate::FromHttpError> {
-            crate::utils::handle_response_body(&response, http::StatusCode::OK)
+        ) -> Result<Self, FromHttpError> {
+            trakt_core::handle_response_body(&response, http::StatusCode::OK)
         }
     }
 }
@@ -279,8 +287,10 @@ pub mod poll_token {
     //! <https://trakt.docs.apiary.io/#reference/authentication-devices/device-code/poll-for-the-access_token>
 
     use bytes::BufMut;
-
-    use crate::{Context, IntoHttpError, Metadata};
+    use trakt_core::{
+        error::{FromHttpError, IntoHttpError},
+        Context, Metadata,
+    };
 
     #[derive(Debug, Clone, Eq, PartialEq)]
     pub struct Request {
@@ -288,19 +298,19 @@ pub mod poll_token {
         pub client_secret: String,
     }
 
-    impl crate::Request for Request {
+    impl trakt_core::Request for Request {
         type Response = Response;
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/device/token",
             method: http::Method::POST,
-            auth: crate::AuthRequirement::None,
+            auth: trakt_core::AuthRequirement::None,
         };
 
         fn try_into_http_request<T: Default + BufMut>(
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let url = crate::url::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
+            let url = trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
 
             let body = T::default();
             let mut writer = body.writer();
@@ -327,7 +337,7 @@ pub mod poll_token {
     ///
     /// Will [`ApiError::BadRequest`] if the device code has not been authorized by the user yet.
     ///
-    /// [`ApiError::BadRequest`]: crate::ApiError::BadRequest
+    /// [`ApiError::BadRequest`]: crate::error::ApiError::BadRequest
     #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize)]
     pub struct Response {
         pub access_token: String,
@@ -338,11 +348,11 @@ pub mod poll_token {
         pub created_at: i64,
     }
 
-    impl crate::Response for Response {
+    impl trakt_core::Response for Response {
         fn try_from_http_response<T: AsRef<[u8]>>(
             response: http::Response<T>,
-        ) -> Result<Self, crate::FromHttpError> {
-            crate::utils::handle_response_body(&response, http::StatusCode::OK)
+        ) -> Result<Self, FromHttpError> {
+            trakt_core::handle_response_body(&response, http::StatusCode::OK)
         }
     }
 }

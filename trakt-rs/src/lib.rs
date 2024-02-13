@@ -66,15 +66,9 @@
 #![allow(clippy::module_name_repetitions)]
 
 pub mod api;
-mod error;
-mod request;
-mod response;
 pub mod smo;
-mod url;
-mod utils;
 
-pub use error::ApiError;
-pub use request::*;
-pub use response::*;
-pub use url::UrlError;
-pub use utils::{Pagination, PaginationResponse};
+pub use trakt_core::{
+    error, AuthRequirement, Context, Metadata, PaginatedResponse, Pagination, PaginationResponse,
+    Request, Response,
+};

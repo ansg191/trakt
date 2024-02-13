@@ -1,0 +1,23 @@
+[package]
+name = "trakt-core"
+description = "Core library for trakt-rs"
+authors = ["Anshul Gupta <ansg191@anshulg.com>"]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+documentation = "https://docs.rs/trakt-core"
+repository = "https://github.com/ansg191/trakt"
+readme = "../README.md"
+keywords = ["trakt", "api", "client"]
+categories = ["api-bindings"]
+
+[dependencies]
+bytes = { workspace = true }
+http = { workspace = true }
+itoa = "1"
+percent-encoding = "2.3"
+ryu = "1"
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_urlencoded = "0.7"
+thiserror = "1"

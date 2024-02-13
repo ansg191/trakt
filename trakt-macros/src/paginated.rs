@@ -36,20 +36,28 @@ pub fn derive_paginated(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         #[automatically_derived]
-        impl crate::PaginatedResponse for #name {
+        impl _trakt_core::PaginatedResponse for #name {
             type Item = #tp;
 
             fn items(&self) -> &[Self::Item] {
                 &self.#i_field.items
             }
 
-            fn next_page(&self) -> Option<crate::Pagination> {
+            fn next_page(&self) -> Option<_trakt_core::Pagination> {
                 self.#i_field.next_page()
             }
         }
     };
 
-    TokenStream::from(expanded)
+    let wrap = quote! {
+        const _: () = {
+            #[allow(unused_extern_crates, clippy::useless_attribute)]
+            extern crate trakt_core as _trakt_core;
+            #expanded
+        };
+    };
+
+    TokenStream::from(wrap)
 }
 
 fn handle_field_attrs(input: &DeriveInput) -> syn::Result<&syn::Field> {

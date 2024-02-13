@@ -48,29 +48,29 @@ pub fn derive_request(input: TokenStream) -> TokenStream {
     let expanded = quote! {
         #stream
         #[automatically_derived]
-        impl crate::Request for #name {
+        impl _trakt_core::Request for #name {
             type Response = #response;
 
-            const METADATA: crate::Metadata = crate::Metadata {
+            const METADATA: _trakt_core::Metadata = _trakt_core::Metadata {
                 endpoint: #endpoint,
-                method: ::http::Method::#method,
-                auth: crate::AuthRequirement::#auth,
+                method: _http::Method::#method,
+                auth: _trakt_core::AuthRequirement::#auth,
             };
 
-            fn try_into_http_request<T: Default + ::bytes::BufMut>(
+            fn try_into_http_request<T: Default + _bytes::BufMut>(
                 self,
-                ctx: crate::Context,
-            ) -> Result<::http::Request<T>, crate::IntoHttpError> {
+                ctx: _trakt_core::Context,
+            ) -> Result<_http::Request<T>, _trakt_core::error::IntoHttpError> {
                 let (path, query): (#p_ident, #q_ident) = self.into();
 
-                let url = crate::url::construct_url(
+                let url = _trakt_core::construct_url(
                     ctx.base_url,
                     #endpoint,
                     &path,
                     &query,
                 )?;
 
-                let request = ::http::Request::builder()
+                let request = _http::Request::builder()
                     .method(Self::METADATA.method)
                     .uri(url)
                     .header("Content-Type", "application/json")
@@ -78,12 +78,12 @@ pub fn derive_request(input: TokenStream) -> TokenStream {
                     .header("trakt-api-key", ctx.client_id);
 
                 let request = match (Self::METADATA.auth, ctx.oauth_token) {
-                    (crate::AuthRequirement::None, _) | (crate::AuthRequirement::Optional, None) => request,
-                    (crate::AuthRequirement::Optional | crate::AuthRequirement::Required, Some(token)) => {
+                    (_trakt_core::AuthRequirement::None, _) | (_trakt_core::AuthRequirement::Optional, None) => request,
+                    (_trakt_core::AuthRequirement::Optional | _trakt_core::AuthRequirement::Required, Some(token)) => {
                         request.header("Authorization", format!("Bearer {}", token))
                     }
-                    (crate::AuthRequirement::Required, None) => {
-                        return Err(crate::IntoHttpError::MissingToken);
+                    (_trakt_core::AuthRequirement::Required, None) => {
+                        return Err(_trakt_core::error::IntoHttpError::MissingToken);
                     }
                 };
 
@@ -92,7 +92,21 @@ pub fn derive_request(input: TokenStream) -> TokenStream {
         }
     };
 
-    TokenStream::from(expanded)
+    let wrap = quote! {
+        const _: () = {
+            #[allow(unused_extern_crates, clippy::useless_attribute)]
+            extern crate http as _http;
+            #[allow(unused_extern_crates, clippy::useless_attribute)]
+            extern crate bytes as _bytes;
+            #[allow(unused_extern_crates, clippy::useless_attribute)]
+            extern crate trakt_core as _trakt_core;
+            #[allow(unused_extern_crates, clippy::useless_attribute)]
+            extern crate serde as _serde;
+            #expanded
+        };
+    };
+
+    TokenStream::from(wrap)
 }
 
 fn parse_url_params(endpoint: &str) -> Vec<&str> {
@@ -198,13 +212,13 @@ fn make_structs(
 
     let stream = quote! {
         #[doc(hidden)]
-        #[derive(Debug, Clone, ::serde::Serialize)]
+        #[derive(Debug, Clone, _serde::Serialize)]
         struct #q_ident {
             #query_params
         }
 
         #[doc(hidden)]
-        #[derive(Debug, Clone, ::serde::Serialize)]
+        #[derive(Debug, Clone, _serde::Serialize)]
         struct #p_ident {
             #path_params
         }
