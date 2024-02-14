@@ -2,7 +2,7 @@
 name = "trakt-core"
 description = "Core library for trakt-rs"
 authors = ["Anshul Gupta <ansg191@anshulg.com>"]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 documentation = "https://docs.rs/trakt-core"
