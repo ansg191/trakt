@@ -720,7 +720,23 @@ pub mod stats {
 }
 
 pub mod studio {
-    //! TODO: Implement
+    //! Get movie studios
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/studios/get-movie-studios>
+
+    use crate::smo::{Id, Studio};
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/movies/{id}/studios",
+    )]
+    pub struct Request {
+        pub id: Id,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    pub struct Response(pub Vec<Studio>);
 }
 
 pub mod watching {

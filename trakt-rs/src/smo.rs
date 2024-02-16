@@ -8,7 +8,7 @@ use smallstr::SmallString;
 use time::OffsetDateTime;
 use trakt_core::EmojiString;
 
-#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize)]
 #[serde(untagged)]
 pub enum Id {
     Trakt(u64),
@@ -210,3 +210,10 @@ pub struct Ratings {
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct Distribution(pub [u32; 10]);
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
+pub struct Studio {
+    pub name: String,
+    pub country: Country,
+    pub ids: Ids,
+}
