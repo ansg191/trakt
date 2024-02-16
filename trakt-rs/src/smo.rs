@@ -1,9 +1,12 @@
 //! Standard Media Objects
 
-use std::fmt::Formatter;
+mod de;
+mod ser;
 
-use serde::{de::Unexpected, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use smallstr::SmallString;
+use time::OffsetDateTime;
+use trakt_core::EmojiString;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -38,13 +41,13 @@ pub struct Show {
     pub ids: Ids,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Season {
     pub number: u16,
     pub ids: Ids,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Episode {
     pub season: u16,
     pub number: u16,
@@ -130,52 +133,80 @@ impl TwoLetter {
     }
 }
 
-impl Serialize for Country {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        self.as_str().serialize(serializer)
-    }
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Sort {
+    #[default]
+    Newest,
+    Oldest,
+    Likes,
+    Replies,
+    Highest,
+    Lowest,
+    Plays,
 }
 
-impl<'de> Deserialize<'de> for TwoLetter {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct Visitor;
-
-        impl<'a> serde::de::Visitor<'a> for Visitor {
-            type Value = TwoLetter;
-
-            fn expecting(&self, formatter: &mut Formatter) -> std::fmt::Result {
-                formatter.write_str("a 2 letter country code")
-            }
-
-            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                if value.len() != 2 {
-                    return Err(E::invalid_length(value.len(), &"2"));
-                }
-                Ok(TwoLetter::new(value))
-            }
-
-            fn visit_borrowed_bytes<E>(self, v: &'a [u8]) -> Result<Self::Value, E>
-            where
-                E: serde::de::Error,
-            {
-                if v.len() != 2 {
-                    return Err(E::invalid_length(v.len(), &"2"));
-                }
-                let s = std::str::from_utf8(v)
-                    .map_err(|_| E::invalid_value(Unexpected::Bytes(v), &self))?;
-                Ok(TwoLetter::new(s))
-            }
-        }
-
-        deserializer.deserialize_str(Visitor)
-    }
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
+pub struct Comment {
+    pub id: u32,
+    pub parent_id: Option<u32>,
+    #[serde(with = "time::serde::iso8601")]
+    pub created_at: OffsetDateTime,
+    #[serde(with = "time::serde::iso8601")]
+    pub updated_at: OffsetDateTime,
+    pub comment: EmojiString,
+    pub spoiler: bool,
+    pub review: bool,
+    pub replies: u32,
+    pub likes: u32,
+    pub user_stats: UserStats,
+    pub user: User,
 }
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
+pub struct UserStats {
+    pub rating: u8,
+    pub play_count: u32,
+    pub completed_count: u32,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
+pub struct List {
+    pub name: EmojiString,
+    pub description: EmojiString,
+    pub privacy: String,
+    pub share_link: String,
+    pub r#type: ListType,
+    pub display_numbers: bool,
+    pub allow_comments: bool,
+    pub sort_by: String,
+    pub sort_how: String,
+    #[serde(with = "time::serde::iso8601")]
+    pub created_at: OffsetDateTime,
+    #[serde(with = "time::serde::iso8601")]
+    pub updated_at: OffsetDateTime,
+    pub item_count: u64,
+    pub comment_count: u64,
+    pub likes: u64,
+    pub ids: Ids,
+    pub user: User,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ListType {
+    Personal,
+    Official,
+    Watchlist,
+    Favorites,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+pub struct Ratings {
+    pub rating: f32,
+    pub votes: u32,
+    pub distribution: Distribution,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub struct Distribution(pub [u32; 10]);
