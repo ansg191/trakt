@@ -12,15 +12,26 @@
 
 mod paginated;
 mod request;
+mod response;
 
 use proc_macro::TokenStream;
+use syn::{parse_macro_input, DeriveInput};
 
 #[proc_macro_derive(Request, attributes(trakt, serde))]
 pub fn derive_request(input: TokenStream) -> TokenStream {
     request::derive_request(input)
 }
 
+#[proc_macro_derive(Response, attributes(trakt))]
+pub fn derive_response(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    response::derive_response(&input)
+        .map_or_else(|e| e.into_compile_error().into(), TokenStream::from)
+}
+
 #[proc_macro_derive(Paginated, attributes(trakt))]
 pub fn derive_paginated(input: TokenStream) -> TokenStream {
-    paginated::derive_paginated(input)
+    let input = parse_macro_input!(input as DeriveInput);
+    paginated::derive_paginated(&input)
+        .map_or_else(|e| e.into_compile_error().into(), TokenStream::from)
 }

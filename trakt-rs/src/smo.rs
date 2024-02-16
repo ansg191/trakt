@@ -15,7 +15,7 @@ pub enum Id {
     Tmdb(u64),
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Ids {
     pub trakt: Option<u64>,
     pub slug: Option<SmallString<[u8; 16]>>,
@@ -24,14 +24,14 @@ pub struct Ids {
     pub tmdb: Option<u64>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Movie {
     pub title: String,
     pub year: u16,
     pub ids: Ids,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Show {
     pub title: String,
     pub year: u16,
@@ -52,13 +52,13 @@ pub struct Episode {
     pub ids: Ids,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Person {
     pub name: String,
     pub ids: Ids,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct User {
     pub username: String,
     pub private: bool,
@@ -68,10 +68,11 @@ pub struct User {
     pub ids: Ids,
 }
 
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Serialize)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Default, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Period {
     Daily,
+    #[default]
     Weekly,
     Monthly,
     Yearly,
