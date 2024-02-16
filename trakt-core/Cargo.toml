@@ -13,6 +13,7 @@ categories = ["api-bindings"]
 
 [dependencies]
 bytes = { workspace = true }
+emojis = "0.6"
 http = { workspace = true }
 itoa = "1"
 percent-encoding = "2.3"
