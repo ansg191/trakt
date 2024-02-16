@@ -9,10 +9,7 @@ pub mod token {
     //! <https://trakt.docs.apiary.io/#reference/authentication-oauth/get-token/exchange-code-for-access_token>
 
     use bytes::BufMut;
-    use trakt_core::{
-        error::{FromHttpError, IntoHttpError},
-        Context, Metadata,
-    };
+    use trakt_core::{error::IntoHttpError, Context, Metadata};
 
     #[derive(Debug, Clone, Eq, PartialEq)]
     pub struct Request {
@@ -58,7 +55,7 @@ pub mod token {
         }
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, serde::Deserialize, trakt_macros::Response)]
     pub struct Response {
         pub access_token: String,
         pub token_type: String,
@@ -66,14 +63,6 @@ pub mod token {
         pub refresh_token: String,
         pub scope: String,
         pub created_at: i64,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            trakt_core::handle_response_body(&response, http::StatusCode::OK)
-        }
     }
 }
 
@@ -83,10 +72,7 @@ pub mod exchange {
     //! <https://trakt.docs.apiary.io/#reference/authentication-oauth/revoke-token/revoke-an-access_token>
 
     use bytes::BufMut;
-    use trakt_core::{
-        error::{FromHttpError, IntoHttpError},
-        Context, Metadata,
-    };
+    use trakt_core::{error::IntoHttpError, Context, Metadata};
 
     #[derive(Debug, Clone, Eq, PartialEq)]
     pub struct Request {
@@ -132,7 +118,7 @@ pub mod exchange {
         }
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize, trakt_macros::Response)]
     pub struct Response {
         pub access_token: String,
         pub token_type: String,
@@ -140,14 +126,6 @@ pub mod exchange {
         pub refresh_token: String,
         pub scope: String,
         pub created_at: i64,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            trakt_core::handle_response_body(&response, http::StatusCode::OK)
-        }
     }
 }
 
@@ -157,10 +135,7 @@ pub mod revoke {
     //! <https://trakt.docs.apiary.io/#reference/authentication-oauth/revoke-token>
 
     use bytes::BufMut;
-    use trakt_core::{
-        error::{FromHttpError, IntoHttpError},
-        handle_response_body, Context, Metadata,
-    };
+    use trakt_core::{error::IntoHttpError, handle_response_body, Context, Metadata};
 
     #[derive(Debug, Clone, Eq, PartialEq)]
     pub struct Request {
@@ -203,17 +178,8 @@ pub mod revoke {
         }
     }
 
-    #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, trakt_macros::Response)]
     pub struct Response;
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            handle_response_body(&response, http::StatusCode::OK)?;
-            Ok(Self)
-        }
-    }
 }
 
 pub mod device_code {
@@ -222,10 +188,7 @@ pub mod device_code {
     //! <https://trakt.docs.apiary.io/#reference/authentication-devices/device-code/generate-new-device-codes>
 
     use bytes::BufMut;
-    use trakt_core::{
-        error::{FromHttpError, IntoHttpError},
-        Context, Metadata,
-    };
+    use trakt_core::{error::IntoHttpError, Context, Metadata};
 
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
     pub struct Request;
@@ -263,21 +226,13 @@ pub mod device_code {
         }
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize, trakt_macros::Response)]
     pub struct Response {
         pub device_code: String,
         pub user_code: String,
         pub verification_url: String,
         pub expires_in: i64,
         pub interval: i64,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            trakt_core::handle_response_body(&response, http::StatusCode::OK)
-        }
     }
 }
 
@@ -287,10 +242,7 @@ pub mod poll_token {
     //! <https://trakt.docs.apiary.io/#reference/authentication-devices/device-code/poll-for-the-access_token>
 
     use bytes::BufMut;
-    use trakt_core::{
-        error::{FromHttpError, IntoHttpError},
-        Context, Metadata,
-    };
+    use trakt_core::{error::IntoHttpError, Context, Metadata};
 
     #[derive(Debug, Clone, Eq, PartialEq)]
     pub struct Request {
@@ -338,7 +290,7 @@ pub mod poll_token {
     /// Will [`ApiError::BadRequest`] if the device code has not been authorized by the user yet.
     ///
     /// [`ApiError::BadRequest`]: crate::error::ApiError::BadRequest
-    #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize, trakt_macros::Response)]
     pub struct Response {
         pub access_token: String,
         pub token_type: String,
@@ -346,13 +298,5 @@ pub mod poll_token {
         pub refresh_token: String,
         pub scope: String,
         pub created_at: i64,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            trakt_core::handle_response_body(&response, http::StatusCode::OK)
-        }
     }
 }

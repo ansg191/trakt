@@ -51,7 +51,7 @@
 //! // Convert the HTTP response into a Trakt response
 //! let trakt_response = trakt_rs::api::movies::summary::Response::try_from_http_response(response).unwrap();
 //!
-//! println!("Movie: {:?}", trakt_response.item);
+//! println!("Movie: {:?}", trakt_response.0);
 //! ```
 #![warn(
     clippy::pedantic,

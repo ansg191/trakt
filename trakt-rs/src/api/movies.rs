@@ -7,9 +7,8 @@ pub mod favorited {
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/favorited>
 
-    use http::StatusCode;
     use serde::Deserialize;
-    use trakt_core::{error::FromHttpError, handle_response_body, Pagination, PaginationResponse};
+    use trakt_core::{Pagination, PaginationResponse};
 
     use crate::smo::{Movie, Period};
 
@@ -24,7 +23,7 @@ pub mod favorited {
         pub pagination: Pagination,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Paginated)]
+    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Response)]
     pub struct Response {
         #[trakt(pagination)]
         pub items: PaginationResponse<ResponseItem>,
@@ -35,26 +34,13 @@ pub mod favorited {
         pub user_count: usize,
         pub movie: Movie,
     }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body: Vec<ResponseItem> = handle_response_body(&response, StatusCode::OK)?;
-
-            let items = PaginationResponse::from_headers(body, response.headers())?;
-
-            Ok(Self { items })
-        }
-    }
 }
 
 pub mod popular {
     //! Get popular movies.
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/popular/get-popular-movies>
-    use http::StatusCode;
-    use trakt_core::{error::FromHttpError, handle_response_body, PaginationResponse};
+    use trakt_core::PaginationResponse;
 
     use crate::smo::Movie;
 
@@ -68,22 +54,10 @@ pub mod popular {
         pub pagination: trakt_core::Pagination,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Paginated)]
+    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Response)]
     pub struct Response {
         #[trakt(pagination)]
         pub items: PaginationResponse<Movie>,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body: Vec<Movie> = handle_response_body(&response, StatusCode::OK)?;
-
-            let items = PaginationResponse::from_headers(body, response.headers())?;
-
-            Ok(Self { items })
-        }
     }
 }
 
@@ -146,7 +120,7 @@ pub mod played {
     //! Get the most played movies in a specific time period.
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/played/get-the-most-played-movies>
-    use trakt_core::{error::FromHttpError, Pagination, PaginationResponse};
+    use trakt_core::{Pagination, PaginationResponse};
 
     use crate::smo::{Movie, Period};
 
@@ -161,7 +135,7 @@ pub mod played {
         pub pagination: Pagination,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Paginated)]
+    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Response)]
     pub struct Response {
         #[trakt(pagination)]
         pub items: PaginationResponse<ResponseItem>,
@@ -174,26 +148,13 @@ pub mod played {
         pub collected_count: usize,
         pub movie: Movie,
     }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body: Vec<ResponseItem> =
-                trakt_core::handle_response_body(&response, http::StatusCode::OK)?;
-
-            let items = PaginationResponse::from_headers(body, response.headers())?;
-
-            Ok(Self { items })
-        }
-    }
 }
 
 pub mod watched {
     //! Get the most watched movies in a specific time period.
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/watched/get-the-most-watched-movies>
-    use trakt_core::{error::FromHttpError, handle_response_body, Pagination, PaginationResponse};
+    use trakt_core::{Pagination, PaginationResponse};
 
     use crate::smo::{Movie, Period};
 
@@ -208,7 +169,7 @@ pub mod watched {
         pub pagination: Pagination,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Paginated)]
+    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Response)]
     pub struct Response {
         #[trakt(pagination)]
         pub items: PaginationResponse<ResponseItem>,
@@ -221,25 +182,13 @@ pub mod watched {
         pub collected_count: usize,
         pub movie: Movie,
     }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body: Vec<ResponseItem> = handle_response_body(&response, http::StatusCode::OK)?;
-
-            let items = PaginationResponse::from_headers(body, response.headers())?;
-
-            Ok(Self { items })
-        }
-    }
 }
 
 pub mod collected {
     //! Get the most collected movies in a specific time period.
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/collected/get-the-most-collected-movies>
-    use trakt_core::{error::FromHttpError, handle_response_body, Pagination, PaginationResponse};
+    use trakt_core::{Pagination, PaginationResponse};
 
     use crate::smo::{Movie, Period};
 
@@ -254,7 +203,7 @@ pub mod collected {
         pub pagination: Pagination,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Paginated)]
+    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Response)]
     pub struct Response {
         #[trakt(pagination)]
         pub items: PaginationResponse<ResponseItem>,
@@ -267,25 +216,13 @@ pub mod collected {
         pub collected_count: usize,
         pub movie: Movie,
     }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body: Vec<ResponseItem> = handle_response_body(&response, http::StatusCode::OK)?;
-
-            let items = PaginationResponse::from_headers(body, response.headers())?;
-
-            Ok(Self { items })
-        }
-    }
 }
 
 pub mod anticipated {
     //! Get the most anticipated movies.
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/anticipated/get-the-most-anticipated-movies>
-    use trakt_core::{error::FromHttpError, handle_response_body, Pagination, PaginationResponse};
+    use trakt_core::{Pagination, PaginationResponse};
 
     use crate::smo::Movie;
 
@@ -299,7 +236,7 @@ pub mod anticipated {
         pub pagination: Pagination,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Paginated)]
+    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Response)]
     pub struct Response {
         #[trakt(pagination)]
         pub items: PaginationResponse<ResponseItem>,
@@ -310,25 +247,12 @@ pub mod anticipated {
         pub list_count: usize,
         pub movie: Movie,
     }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body: Vec<ResponseItem> = handle_response_body(&response, http::StatusCode::OK)?;
-
-            let items = PaginationResponse::from_headers(body, response.headers())?;
-
-            Ok(Self { items })
-        }
-    }
 }
 
 pub mod boxoffice {
     //! Get the top 10 box office movies.
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/box-office/get-the-weekend-box-office>
-    use trakt_core::{error::FromHttpError, handle_response_body};
 
     use crate::smo::Movie;
 
@@ -339,24 +263,13 @@ pub mod boxoffice {
     )]
     pub struct Request;
 
-    #[derive(Debug, Clone, Eq, PartialEq)]
-    pub struct Response {
-        pub movies: Vec<ResponseItem>,
-    }
+    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Response)]
+    pub struct Response(pub Vec<ResponseItem>);
 
     #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize)]
     pub struct ResponseItem {
         pub revenue: usize,
         pub movie: Movie,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let movies = handle_response_body(&response, http::StatusCode::OK)?;
-            Ok(Self { movies })
-        }
     }
 }
 
@@ -365,7 +278,7 @@ pub mod updates {
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/box-office/get-recently-updated-movies>
     use time::OffsetDateTime;
-    use trakt_core::{error::FromHttpError, handle_response_body, Pagination, PaginationResponse};
+    use trakt_core::{Pagination, PaginationResponse};
 
     use crate::smo::Movie;
 
@@ -381,22 +294,11 @@ pub mod updates {
         pub pagination: Pagination,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Paginated)]
+    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Response)]
+    #[trakt(expected = OK)]
     pub struct Response {
         #[trakt(pagination)]
         pub items: PaginationResponse<Movie>,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body: Vec<Movie> = handle_response_body(&response, http::StatusCode::OK)?;
-
-            let items = PaginationResponse::from_headers(body, response.headers())?;
-
-            Ok(Self { items })
-        }
     }
 }
 
@@ -406,7 +308,7 @@ pub mod updates_id {
     //! <https://trakt.docs.apiary.io/#reference/movies/updated-ids/get-recently-updated-movie-trakt-ids>
 
     use time::OffsetDateTime;
-    use trakt_core::{error::FromHttpError, handle_response_body, Pagination, PaginationResponse};
+    use trakt_core::{Pagination, PaginationResponse};
 
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
     #[trakt(
@@ -420,20 +322,11 @@ pub mod updates_id {
         pub pagination: Pagination,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Paginated)]
+    #[derive(Debug, Clone, Eq, PartialEq, trakt_macros::Response)]
+    #[trakt(expected = OK)]
     pub struct Response {
         #[trakt(pagination)]
         pub items: PaginationResponse<u32>,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body = handle_response_body(&response, http::StatusCode::OK)?;
-            let items = PaginationResponse::from_headers(body, response.headers())?;
-            Ok(Self { items })
-        }
     }
 }
 
@@ -441,9 +334,6 @@ pub mod summary {
     //! Get a single movie's details.
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/summary/get-a-movie>
-
-    use http::StatusCode;
-    use trakt_core::{error::FromHttpError, handle_response_body};
 
     use crate::smo::{Id, Movie};
 
@@ -453,20 +343,8 @@ pub mod summary {
         pub id: Id,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq)]
-    pub struct Response {
-        pub item: Movie,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            Ok(Self {
-                item: handle_response_body(&response, StatusCode::OK)?,
-            })
-        }
-    }
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    pub struct Response(pub Movie);
 }
 
 pub mod aliases {
@@ -475,7 +353,6 @@ pub mod aliases {
     //! <https://trakt.docs.apiary.io/#reference/movies/aliases/get-all-movie-aliases>
 
     use serde::Deserialize;
-    use trakt_core::{error::FromHttpError, handle_response_body};
 
     use crate::smo::Id;
 
@@ -488,21 +365,13 @@ pub mod aliases {
         pub id: Id,
     }
 
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
     pub struct Response(pub Vec<ResponseItem>);
 
-    #[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
     pub struct ResponseItem {
         pub title: String,
         pub country: String,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body = handle_response_body(&response, http::StatusCode::OK)?;
-            Ok(Self(body))
-        }
     }
 }
 
@@ -512,7 +381,6 @@ pub mod releases {
     //! <https://trakt.docs.apiary.io/#reference/movies/releases/get-all-movie-releases>
 
     use serde::Deserialize;
-    use trakt_core::{error::FromHttpError, handle_response_body};
 
     use crate::smo::{Country, Id};
 
@@ -526,10 +394,10 @@ pub mod releases {
         pub country: Country,
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
     pub struct Response(pub Vec<ResponseItem>);
 
-    #[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
     pub struct ResponseItem {
         pub country: Country,
         pub certification: String,
@@ -538,7 +406,7 @@ pub mod releases {
         pub note: Option<String>,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
     #[serde(rename_all = "lowercase")]
     pub enum ReleaseType {
         Unknown,
@@ -549,15 +417,6 @@ pub mod releases {
         Physical,
         TV,
     }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body = handle_response_body(&response, http::StatusCode::OK)?;
-            Ok(Self(body))
-        }
-    }
 }
 
 pub mod translations {
@@ -566,7 +425,6 @@ pub mod translations {
     //! <https://trakt.docs.apiary.io/#reference/movies/translations/get-all-movie-translations>
 
     use serde::Deserialize;
-    use trakt_core::{error::FromHttpError, handle_response_body};
 
     use crate::smo::{Country, Id, Language};
 
@@ -580,25 +438,16 @@ pub mod translations {
         pub language: Language,
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
     pub struct Response(pub Vec<ResponseItem>);
 
-    #[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
     pub struct ResponseItem {
         pub title: String,
         pub overview: String,
         pub tagline: String,
         pub language: Language,
         pub country: Country,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body = handle_response_body(&response, http::StatusCode::OK)?;
-            Ok(Self(body))
-        }
     }
 }
 
@@ -611,7 +460,7 @@ pub mod comments {
 
     use serde::{Deserialize, Serialize};
     use time::OffsetDateTime;
-    use trakt_core::{error::FromHttpError, handle_response_body, Pagination, PaginationResponse};
+    use trakt_core::{Pagination, PaginationResponse};
 
     use crate::smo::User;
 
@@ -641,13 +490,14 @@ pub mod comments {
         Plays,
     }
 
-    #[derive(Debug, Clone, trakt_macros::Paginated)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    #[trakt(expected = OK)]
     pub struct Response {
         #[trakt(pagination)]
         pub items: PaginationResponse<ResponseItem>,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
     pub struct ResponseItem {
         pub id: u32,
         pub parent_id: Option<u32>,
@@ -664,21 +514,11 @@ pub mod comments {
         pub user: User,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
     pub struct UserStats {
         pub rating: u8,
         pub play_count: u32,
         pub completed_count: u32,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body = handle_response_body(&response, http::StatusCode::OK)?;
-            let items = PaginationResponse::from_headers(body, response.headers())?;
-            Ok(Self { items })
-        }
     }
 }
 
@@ -728,7 +568,6 @@ pub mod people {
     //! <https://trakt.docs.apiary.io/#reference/movies/lists/get-all-people-for-a-movie>
 
     use serde::Deserialize;
-    use trakt_core::{error::FromHttpError, handle_response_body};
 
     use crate::smo::{Id, Person};
 
@@ -741,19 +580,19 @@ pub mod people {
         pub id: Id,
     }
 
-    #[derive(Debug, Clone, Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, trakt_macros::Response)]
     pub struct Response {
         pub cast: Vec<Character>,
         pub crew: Crew,
     }
 
-    #[derive(Debug, Clone, Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
     pub struct Character {
         pub characters: Vec<String>,
         pub person: Person,
     }
 
-    #[derive(Debug, Clone, Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
     pub struct Crew {
         pub production: Vec<CrewMember>,
         pub art: Vec<CrewMember>,
@@ -770,19 +609,10 @@ pub mod people {
         pub editing: Vec<CrewMember>,
     }
 
-    #[derive(Debug, Clone, Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
     pub struct CrewMember {
         pub jobs: Vec<String>,
         pub person: Person,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body = handle_response_body(&response, http::StatusCode::OK)?;
-            Ok(body)
-        }
     }
 }
 
@@ -792,7 +622,6 @@ pub mod ratings {
     //! <https://trakt.docs.apiary.io/#reference/movies/ratings/get-movie-ratings>
 
     use serde::Deserialize;
-    use trakt_core::{error::FromHttpError, handle_response_body};
 
     use crate::smo::Id;
 
@@ -805,7 +634,7 @@ pub mod ratings {
         pub id: Id,
     }
 
-    #[derive(Debug, Clone, PartialEq, Deserialize)]
+    #[derive(Debug, Clone, PartialEq, Deserialize, trakt_macros::Response)]
     pub struct Response {
         pub rating: f64,
         pub votes: u64,
@@ -835,15 +664,6 @@ pub mod ratings {
         #[serde(rename = "10")]
         pub ten: u32,
     }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body = handle_response_body(&response, http::StatusCode::OK)?;
-            Ok(body)
-        }
-    }
 }
 
 pub mod related {
@@ -851,7 +671,7 @@ pub mod related {
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/related/get-related-movies>
 
-    use trakt_core::{error::FromHttpError, handle_response_body, PaginationResponse};
+    use trakt_core::PaginationResponse;
 
     use crate::smo::{Id, Movie};
 
@@ -864,20 +684,11 @@ pub mod related {
         pub id: Id,
     }
 
-    #[derive(Debug, Clone, trakt_macros::Paginated)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    #[trakt(expected = OK)]
     pub struct Response {
         #[trakt(pagination)]
         pub items: PaginationResponse<Movie>,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            let body = handle_response_body(&response, http::StatusCode::OK)?;
-            let items = PaginationResponse::from_headers(body, response.headers())?;
-            Ok(Self { items })
-        }
     }
 }
 
@@ -885,9 +696,6 @@ pub mod stats {
     //! Get stats for a movie.
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/related/get-movie-stats>
-
-    use trakt_core::{error::FromHttpError, handle_response_body};
-
     use crate::smo::Id;
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
@@ -899,7 +707,7 @@ pub mod stats {
         pub id: Id,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq, serde::Deserialize)]
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, serde::Deserialize, trakt_macros::Response)]
     pub struct Response {
         pub watchers: u32,
         pub plays: u32,
@@ -908,14 +716,6 @@ pub mod stats {
         pub lists: u32,
         pub votes: u32,
         pub favorited: u32,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            handle_response_body(&response, http::StatusCode::OK)
-        }
     }
 }
 
@@ -927,9 +727,6 @@ pub mod watching {
     //! Get users currently watching a movie.
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/watching/get-users-currently-watching-a-movie>
-
-    use trakt_core::{error::FromHttpError, handle_response_body};
-
     use crate::smo::{Id, User};
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
@@ -941,20 +738,8 @@ pub mod watching {
         pub id: Id,
     }
 
-    #[derive(Debug, Clone, Eq, PartialEq)]
-    pub struct Response {
-        pub items: Vec<User>,
-    }
-
-    impl trakt_core::Response for Response {
-        fn try_from_http_response<T: AsRef<[u8]>>(
-            response: http::Response<T>,
-        ) -> Result<Self, FromHttpError> {
-            Ok(Self {
-                items: handle_response_body(&response, http::StatusCode::OK)?,
-            })
-        }
-    }
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    pub struct Response(pub Vec<User>);
 }
 
 #[cfg(test)]

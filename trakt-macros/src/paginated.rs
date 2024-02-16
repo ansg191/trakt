@@ -1,37 +1,30 @@
-use proc_macro::TokenStream;
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{parse_macro_input, spanned::Spanned, DeriveInput};
+use syn::{spanned::Spanned, DeriveInput};
 
-pub fn derive_paginated(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
+use crate::response::{check_pagination, Pagination};
 
+pub fn derive_paginated(input: &DeriveInput) -> syn::Result<TokenStream> {
     let name = &input.ident;
 
     // Disallow Generic structs
     if !input.generics.params.is_empty() {
-        return syn::Error::new(
+        return Err(syn::Error::new(
             Span::call_site(),
             "Paginated Response structs cannot be generic",
-        )
-        .into_compile_error()
-        .into();
+        ));
     }
 
-    let field = match handle_field_attrs(&input) {
-        Ok(a) => a,
-        Err(e) => return e.to_compile_error().into(),
+    let Some(Pagination { field }) = check_pagination(input)? else {
+        return Err(syn::Error::new(
+            Span::call_site(),
+            "missing #[trakt(pagination)] attribute",
+        ));
     };
-
-    let tp = match extract_item(&field.ty) {
-        Ok(tp) => tp,
-        Err(e) => return e.to_compile_error().into(),
-    };
+    let tp = extract_item(&field.ty)?;
 
     let Some(i_field) = &field.ident else {
-        return syn::Error::new(Span::call_site(), "missing field name")
-            .into_compile_error()
-            .into();
+        return Err(syn::Error::new(Span::call_site(), "missing field name"));
     };
 
     let expanded = quote! {
@@ -57,44 +50,7 @@ pub fn derive_paginated(input: TokenStream) -> TokenStream {
         };
     };
 
-    TokenStream::from(wrap)
-}
-
-fn handle_field_attrs(input: &DeriveInput) -> syn::Result<&syn::Field> {
-    let syn::Data::Struct(data) = &input.data else {
-        return Err(syn::Error::new(
-            Span::call_site(),
-            "Paginated Response must be a struct",
-        ));
-    };
-
-    let mut ret = None;
-
-    for field in &data.fields {
-        for attr in &field.attrs {
-            if attr.path().is_ident("trakt") {
-                attr.parse_nested_meta(|meta| {
-                    if meta.path.is_ident("pagination") {
-                        ret = Some(field);
-                        Ok(())
-                    } else {
-                        Err(meta.error("unknown attribute"))
-                    }
-                })?;
-                break;
-            }
-        }
-    }
-
-    ret.map_or_else(
-        || {
-            Err(syn::Error::new(
-                Span::call_site(),
-                "missing #[trakt(pagination)] attribute",
-            ))
-        },
-        Ok,
-    )
+    Ok(wrap)
 }
 
 /// Extracts the inner type of `PaginationResponse<T>` type.

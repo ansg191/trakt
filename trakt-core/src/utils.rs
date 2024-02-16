@@ -1,3 +1,5 @@
+use std::{num::ParseIntError, str::FromStr};
+
 use http::{header::AsHeaderName, HeaderMap, StatusCode};
 use serde::Serialize;
 
@@ -29,7 +31,7 @@ impl Pagination {
 }
 
 /// `PaginationResponse` struct is used to store the paginated response from the API.
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct PaginationResponse<T> {
     pub items: Vec<T>,
     pub current_page: usize,
@@ -76,10 +78,11 @@ impl<T> PaginationResponse<T> {
 ///
 /// Returns a `DeserializeError` if the header is missing, if the header value is not a valid
 /// string, or if the string value cannot be parsed to an integer.
-pub fn parse_from_header<K: AsHeaderName>(
-    map: &HeaderMap,
-    key: K,
-) -> Result<usize, DeserializeError> {
+pub fn parse_from_header<T, K>(map: &HeaderMap, key: K) -> Result<T, DeserializeError>
+where
+    T: FromStr<Err = ParseIntError>,
+    K: AsHeaderName,
+{
     map.get(key)
         .ok_or(HeaderError::MissingHeader)?
         .to_str()
@@ -126,18 +129,18 @@ mod tests {
         map.insert("D", HeaderValue::from_static("10"));
 
         assert!(matches!(
-            parse_from_header(&map, "A"),
+            parse_from_header::<u32, _>(&map, "A"),
             Err(DeserializeError::Header(HeaderError::MissingHeader))
         ));
         assert!(matches!(
-            parse_from_header(&map, "B"),
+            parse_from_header::<u32, _>(&map, "B"),
             Err(DeserializeError::Header(HeaderError::ToStrError(_)))
         ));
         assert!(matches!(
-            parse_from_header(&map, "C"),
+            parse_from_header::<u32, _>(&map, "C"),
             Err(DeserializeError::ParseInt(_))
         ));
-        assert_eq!(parse_from_header(&map, "D").unwrap(), 10);
+        assert_eq!(parse_from_header::<u32, _>(&map, "D").unwrap(), 10);
     }
 
     #[test]
