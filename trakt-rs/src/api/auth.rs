@@ -135,7 +135,7 @@ pub mod revoke {
     //! <https://trakt.docs.apiary.io/#reference/authentication-oauth/revoke-token>
 
     use bytes::BufMut;
-    use trakt_core::{error::IntoHttpError, handle_response_body, Context, Metadata};
+    use trakt_core::{error::IntoHttpError, Context, Metadata};
 
     #[derive(Debug, Clone, Eq, PartialEq)]
     pub struct Request {

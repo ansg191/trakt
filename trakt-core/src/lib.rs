@@ -10,12 +10,14 @@
 )]
 #![allow(clippy::module_name_repetitions)]
 
+mod emoji_str;
 pub mod error;
 mod request;
 mod response;
 mod url;
 mod utils;
 
+pub use emoji_str::*;
 pub use request::*;
 pub use response::*;
 pub use url::*;

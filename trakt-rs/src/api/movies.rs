@@ -313,7 +313,7 @@ pub mod updates_id {
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
     #[trakt(
     response = Response,
-    endpoint = "/movies/{id}/updates/{start_date}",
+    endpoint = "/movies/updates/id/{start_date}",
     )]
     pub struct Request {
         #[serde(with = "time::serde::iso8601")]
@@ -457,12 +457,9 @@ pub mod comments {
     //! If oauth is provided, comments from blocked users will be filtered out.
     //!
     //! <https://trakt.docs.apiary.io/#reference/movies/comments/get-all-movie-comments>
-
-    use serde::{Deserialize, Serialize};
-    use time::OffsetDateTime;
     use trakt_core::{Pagination, PaginationResponse};
 
-    use crate::smo::User;
+    use crate::smo::{Comment, Sort};
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
     #[trakt(
@@ -477,48 +474,11 @@ pub mod comments {
         pub pagination: Pagination,
     }
 
-    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize)]
-    #[serde(rename_all = "lowercase")]
-    pub enum Sort {
-        #[default]
-        Newest,
-        Oldest,
-        Likes,
-        Replies,
-        Highest,
-        Lowest,
-        Plays,
-    }
-
     #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
     #[trakt(expected = OK)]
     pub struct Response {
         #[trakt(pagination)]
-        pub items: PaginationResponse<ResponseItem>,
-    }
-
-    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
-    pub struct ResponseItem {
-        pub id: u32,
-        pub parent_id: Option<u32>,
-        #[serde(with = "time::serde::iso8601")]
-        pub created_at: OffsetDateTime,
-        #[serde(with = "time::serde::iso8601")]
-        pub updated_at: OffsetDateTime,
-        pub comment: String,
-        pub spoiler: bool,
-        pub review: bool,
-        pub replies: u32,
-        pub likes: u32,
-        pub user_stats: UserStats,
-        pub user: User,
-    }
-
-    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
-    pub struct UserStats {
-        pub rating: u8,
-        pub play_count: u32,
-        pub completed_count: u32,
+        pub items: PaginationResponse<Comment>,
     }
 }
 
@@ -623,7 +583,7 @@ pub mod ratings {
 
     use serde::Deserialize;
 
-    use crate::smo::Id;
+    use crate::smo::{Id, Ratings};
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
     #[trakt(
@@ -635,35 +595,7 @@ pub mod ratings {
     }
 
     #[derive(Debug, Clone, PartialEq, Deserialize, trakt_macros::Response)]
-    pub struct Response {
-        pub rating: f64,
-        pub votes: u64,
-        pub distribution: Distribution,
-    }
-
-    #[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
-    pub struct Distribution {
-        #[serde(rename = "1")]
-        pub one: u32,
-        #[serde(rename = "2")]
-        pub two: u32,
-        #[serde(rename = "3")]
-        pub three: u32,
-        #[serde(rename = "4")]
-        pub four: u32,
-        #[serde(rename = "5")]
-        pub five: u32,
-        #[serde(rename = "6")]
-        pub six: u32,
-        #[serde(rename = "7")]
-        pub seven: u32,
-        #[serde(rename = "8")]
-        pub eight: u32,
-        #[serde(rename = "9")]
-        pub nine: u32,
-        #[serde(rename = "10")]
-        pub ten: u32,
-    }
+    pub struct Response(pub Ratings);
 }
 
 pub mod related {
@@ -720,7 +652,23 @@ pub mod stats {
 }
 
 pub mod studio {
-    //! TODO: Implement
+    //! Get movie studios
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/movies/studios/get-movie-studios>
+
+    use crate::smo::{Id, Studio};
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/movies/{id}/studios",
+    )]
+    pub struct Request {
+        pub id: Id,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    pub struct Response(pub Vec<Studio>);
 }
 
 pub mod watching {

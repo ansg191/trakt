@@ -69,6 +69,6 @@ pub mod api;
 pub mod smo;
 
 pub use trakt_core::{
-    error, AuthRequirement, Context, Metadata, PaginatedResponse, Pagination, PaginationResponse,
-    Request, Response,
+    error, AuthRequirement, Context, EmojiString, Metadata, PaginatedResponse, Pagination,
+    PaginationResponse, Request, Response,
 };

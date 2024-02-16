@@ -159,7 +159,7 @@ fn derive_struct(expected: &Ident) -> DeriveResponse {
 
 fn derive_unit(expected: &Ident) -> DeriveResponse {
     let body = quote! {
-        handle_response_body(&response, http::StatusCode::#expected)?;
+        _trakt_core::handle_response_body(&response, http::StatusCode::#expected)?;
         Ok(Self)
     };
     DeriveResponse {
