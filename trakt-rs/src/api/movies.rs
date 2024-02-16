@@ -313,7 +313,7 @@ pub mod updates_id {
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
     #[trakt(
     response = Response,
-    endpoint = "/movies/{id}/updates/{start_date}",
+    endpoint = "/movies/updates/id/{start_date}",
     )]
     pub struct Request {
         #[serde(with = "time::serde::iso8601")]

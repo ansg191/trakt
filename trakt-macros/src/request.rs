@@ -2,7 +2,8 @@ use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
 use quote::{format_ident, quote};
 use syn::{
-    parse_macro_input, punctuated::Punctuated, DeriveInput, Field, Fields, LitStr, Token, Type,
+    parse_macro_input, punctuated::Punctuated, spanned::Spanned, DeriveInput, Field, Fields,
+    LitStr, Token, Type,
 };
 
 pub fn derive_request(input: TokenStream) -> TokenStream {
@@ -177,12 +178,12 @@ fn derive_request_structs(input: &DeriveInput, endpoint: &str) -> syn::Result<Se
         ));
     };
     match &data.fields {
-        Fields::Named(f) => Ok(make_structs(&input.ident, &f.named, endpoint)),
+        Fields::Named(f) => make_structs(&input.ident, &f.named, endpoint),
         Fields::Unnamed(_) => Err(syn::Error::new(
             Span::call_site(),
             "Request structs cannot have unnamed fields",
         )),
-        Fields::Unit => Ok(make_structs(&input.ident, &Punctuated::new(), endpoint)),
+        Fields::Unit => make_structs(&input.ident, &Punctuated::new(), endpoint),
     }
 }
 
@@ -190,18 +191,34 @@ fn make_structs(
     ident: &Ident,
     fields: &Punctuated<Field, Token![,]>,
     endpoint: &str,
-) -> SerializeStructs {
-    let path_params_str = parse_url_params(endpoint);
+) -> syn::Result<SerializeStructs> {
+    let mut path_params_str = parse_url_params(endpoint);
 
     let mut path_params = Punctuated::<_, Token![,]>::new();
     let mut query_params = Punctuated::<_, Token![,]>::new();
     for field in fields {
         let ident = field.ident.as_ref().unwrap();
-        if path_params_str.contains(&&*ident.to_string()) {
+
+        let idx = path_params_str
+            .iter()
+            .position(|&s| s == &*ident.to_string());
+        if let Some(idx) = idx {
+            path_params_str.swap_remove(idx);
             path_params.push(field);
         } else {
             query_params.push(field);
         }
+    }
+
+    if !path_params_str.is_empty() {
+        return Err(syn::Error::new(
+            fields.span(),
+            format!(
+                "missing path parameter{}: {}",
+                if path_params_str.len() == 1 { "" } else { "s" },
+                path_params_str.join(", ")
+            ),
+        ));
     }
 
     let q_ident = format_ident!("{}QueryParams", ident);
@@ -231,9 +248,9 @@ fn make_structs(
         }
     };
 
-    SerializeStructs {
+    Ok(SerializeStructs {
         q_ident,
         p_ident,
         stream,
-    }
+    })
 }
