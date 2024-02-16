@@ -111,7 +111,7 @@ jobs:
           version: "^0.27"
 
       - name: Run tarpaulin
-        run: cargo tarpaulin --skip-clean --out xml
+        run: cargo tarpaulin --skip-clean --out xml -e trakt-macros --workspace
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
