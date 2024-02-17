@@ -118,3 +118,11 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: ansg191/trakt
+
+  cargo-deny:
+      name: Cargo-Deny
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/checkout@v4
+        - uses: EmbarkStudios/cargo-deny-action@v1
