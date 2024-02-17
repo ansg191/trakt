@@ -822,9 +822,8 @@ pub mod last_episode {
 #[cfg(test)]
 mod tests {
     use httpmock::prelude::*;
-    use isahc::ReadResponseExt;
     use serde_json::json;
-    use trakt_core::{Context, PaginatedResponse, Request, Response};
+    use trakt_core::{Context, PaginatedResponse, Request};
 
     use super::*;
 
@@ -887,12 +886,7 @@ mod tests {
         assert_eq!(http_req.headers().get("Authorization"), None);
         assert!(http_req.body().is_empty());
 
-        let mut response = isahc::send(http_req).unwrap();
-        let bytes = response.bytes().unwrap();
-        let (parts, _) = response.into_parts();
-        let response = http::Response::from_parts(parts, bytes);
-
-        let response = trending::Response::try_from_http_response(response).unwrap();
+        let response = crate::test::execute(ctx, request).unwrap();
 
         assert_eq!(response.items().len(), 1);
         assert_eq!(response.items()[0].watchers, 123);

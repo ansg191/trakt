@@ -67,6 +67,8 @@
 
 pub mod api;
 pub mod smo;
+#[cfg(test)]
+mod test;
 
 pub use trakt_core::{
     error, AuthRequirement, Context, EmojiString, Metadata, PaginatedResponse, Pagination,
