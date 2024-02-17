@@ -5,7 +5,7 @@ mod ser;
 
 use serde::{Deserialize, Serialize};
 use smol_str::SmolStr;
-use time::OffsetDateTime;
+use time::{Date, OffsetDateTime};
 use trakt_core::EmojiString;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize)]
@@ -216,4 +216,19 @@ pub struct Studio {
     pub name: String,
     pub country: Country,
     pub ids: Ids,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
+pub struct EpisodeAirEvent {
+    #[serde(with = "time::serde::iso8601")]
+    pub first_aired: OffsetDateTime,
+    pub episode: Episode,
+    pub show: Show,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
+pub struct MovieReleaseEvent {
+    #[serde(with = "crate::iso8601_date")]
+    pub release_date: Date,
+    pub movie: Movie,
 }

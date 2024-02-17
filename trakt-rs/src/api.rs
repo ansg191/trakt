@@ -7,5 +7,6 @@
 //! API documentation: [https://trakt.docs.apiary.io/](https://trakt.docs.apiary.io/)
 
 pub mod auth;
+pub mod calendars;
 pub mod movies;
 pub mod shows;
