@@ -63,7 +63,7 @@
     clippy::mod_module_files,
     clippy::str_to_string
 )]
-#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::module_name_repetitions, clippy::redundant_pub_crate)]
 
 pub mod api;
 pub mod smo;
@@ -74,3 +74,5 @@ pub use trakt_core::{
     error, AuthRequirement, Context, EmojiString, Metadata, PaginatedResponse, Pagination,
     PaginationResponse, Request, Response,
 };
+
+time::serde::format_description!(iso8601_date, Date, "[year]-[month]-[day]");
