@@ -19,7 +19,7 @@ bytes = { workspace = true }
 http = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-smallstr = { version = "0.3.0", features = ["std", "union", "serde"] }
+smol_str = { version = "0.2", features = ["serde"] }
 time = { workspace = true }
 trakt-core = { workspace = true }
 trakt-macros = { workspace = true }
