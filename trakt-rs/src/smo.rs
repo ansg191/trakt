@@ -4,7 +4,7 @@ mod de;
 mod ser;
 
 use serde::{Deserialize, Serialize};
-use smallstr::SmallString;
+use smol_str::SmolStr;
 use time::OffsetDateTime;
 use trakt_core::EmojiString;
 
@@ -12,18 +12,18 @@ use trakt_core::EmojiString;
 #[serde(untagged)]
 pub enum Id {
     Trakt(u64),
-    Slug(SmallString<[u8; 16]>),
+    Slug(SmolStr),
     Tvdb(u64),
-    Imdb(SmallString<[u8; 16]>),
+    Imdb(SmolStr),
     Tmdb(u64),
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Ids {
     pub trakt: Option<u64>,
-    pub slug: Option<SmallString<[u8; 16]>>,
+    pub slug: Option<SmolStr>,
     pub tvdb: Option<u64>,
-    pub imdb: Option<SmallString<[u8; 16]>>,
+    pub imdb: Option<SmolStr>,
     pub tmdb: Option<u64>,
 }
 
