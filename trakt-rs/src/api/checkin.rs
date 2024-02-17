@@ -2,14 +2,15 @@
 //!
 //! <https://trakt.docs.apiary.io/#reference/checkin>
 
-pub mod check_in {
+#[allow(clippy::module_inception)]
+pub mod checkin {
     //! Check into an item
     //!
     //! <https://trakt.docs.apiary.io/#reference/checkin/checkin/check-into-an-item>
 
     use bytes::BufMut;
     use serde::{Deserialize, Serialize};
-    use serde_json::json;
+    use serde_json::{json, Value};
     use time::OffsetDateTime;
     use trakt_core::{construct_url, error::IntoHttpError, AuthRequirement, Context, Metadata};
 
@@ -25,9 +26,9 @@ pub mod check_in {
 
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
     pub struct Sharing {
-        twitter: bool,
-        mastodon: bool,
-        tumblr: bool,
+        pub twitter: bool,
+        pub mastodon: bool,
+        pub tumblr: bool,
     }
 
     impl<I: CheckinItem> Request<I> {
@@ -84,12 +85,17 @@ pub mod check_in {
                 Id::Tvdb(tvdb) => json!({ "ids": { "tvdb": tvdb } }),
             };
 
-            let mut json = json!({
-                "sharing": self.sharing,
-                "message": self.message,
+            let json = Value::Object({
+                let mut map = serde_json::Map::new();
+                map.insert(I::KEY.to_owned(), id);
+                if let Some(sharing) = self.sharing {
+                    map.insert("sharing".to_owned(), json!(sharing));
+                }
+                if let Some(message) = self.message {
+                    map.insert("message".to_owned(), json!(message));
+                }
+                map
             });
-            // Won't panic because json is an object
-            json.as_object_mut().unwrap().insert(I::KEY.to_owned(), id);
 
             serde_json::to_writer(&mut writer, &json)?;
 
@@ -176,4 +182,73 @@ pub mod delete {
     #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
     #[trakt(expected = NO_CONTENT)]
     pub struct Response;
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+    use trakt_core::{Context, Request};
+
+    use super::*;
+    use crate::{smo::Id, test::assert_request};
+
+    const CTX: Context = Context {
+        base_url: "https://api.trakt.tv",
+        client_id: "client_id",
+        oauth_token: Some("token"),
+    };
+
+    #[test]
+    fn checkin_movie_request() {
+        let expected = r#"{"movie":{"ids":{"trakt":1}}}"#;
+        let request = checkin::Request::new_movie(Id::Trakt(1));
+        assert_request(CTX, request, "https://api.trakt.tv/checkin", expected);
+    }
+
+    #[test]
+    fn checkin_movie_request_extra() {
+        let expected = serde_json::to_string(&json!({
+            "movie": {
+                "ids": { "trakt": 1 },
+            },
+            "sharing": {
+                "twitter": true,
+                "mastodon": false,
+                "tumblr": true,
+            },
+            "message": "Hello, world!",
+        }))
+        .unwrap();
+        let mut request = checkin::Request::new_movie(Id::Trakt(1));
+        request.sharing = Some(checkin::Sharing {
+            twitter: true,
+            mastodon: false,
+            tumblr: true,
+        });
+        request.message = Some("Hello, world!".into());
+        assert_request(CTX, request, "https://api.trakt.tv/checkin", &expected);
+    }
+
+    #[test]
+    fn checkin_missing_oauth() {
+        let request = checkin::Request::new_movie(Id::Trakt(1));
+        let err = request
+            .try_into_http_request::<Vec<u8>>(Context {
+                base_url: "https://api.trakt.tv",
+                client_id: "client_id",
+                oauth_token: None,
+            })
+            .unwrap_err();
+        assert!(matches!(
+            err,
+            trakt_core::error::IntoHttpError::MissingToken
+        ));
+    }
+
+    #[test]
+    fn checkin_episode_request() {
+        let expected = r#"{"episode":{"ids":{"imdb":"tt12345"}}}"#;
+        let request = checkin::Request::new_episode(Id::Imdb("tt12345".into()));
+        assert_request(CTX, request, "https://api.trakt.tv/checkin", expected);
+    }
 }

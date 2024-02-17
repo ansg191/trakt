@@ -9,6 +9,30 @@ use trakt_core::{
 
 static CLIENT: OnceLock<Client> = OnceLock::new();
 
+pub fn assert_request<R: Request>(ctx: Context, req: R, exp_url: &str, exp_body: &str) {
+    let http_req = req.try_into_http_request::<Vec<u8>>(ctx).unwrap();
+
+    assert_eq!(http_req.method(), R::METADATA.method);
+    assert_eq!(http_req.uri(), exp_url);
+    assert_eq!(
+        http_req.headers().get("Content-Type").unwrap(),
+        "application/json"
+    );
+    assert_eq!(http_req.headers().get("trakt-api-version").unwrap(), "2");
+    assert_eq!(
+        http_req.headers().get("trakt-api-key").unwrap(),
+        ctx.client_id
+    );
+    if let Some(token) = ctx.oauth_token {
+        assert_eq!(
+            *http_req.headers().get("Authorization").unwrap(),
+            format!("Bearer {token}")
+        );
+    }
+
+    assert_eq!(String::from_utf8_lossy(http_req.body()), exp_body);
+}
+
 pub fn execute<R: Request>(ctx: Context, req: R) -> Result<R::Response, Error> {
     let client = CLIENT.get_or_init(Client::new);
 
