@@ -300,3 +300,99 @@ pub mod poll_token {
         pub created_at: i64,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+    use trakt_core::Context;
+
+    use super::*;
+    use crate::test::assert_request;
+
+    const CTX: Context = Context {
+        base_url: "https://api.trakt.tv",
+        client_id: "client_id",
+        oauth_token: None,
+    };
+
+    #[test]
+    fn test_token_request() {
+        let expected = json!({
+            "code": "code",
+            "client_id": CTX.client_id,
+            "client_secret": "secret",
+            "redirect_uri": "https://localhost:8080",
+            "grant_type": "authorization_code",
+        });
+        let req = token::Request {
+            code: "code".to_owned(),
+            client_secret: "secret".to_owned(),
+            redirect_uri: "https://localhost:8080".to_owned(),
+        };
+        assert_request(CTX, req, "https://api.trakt.tv/oauth/token", &expected);
+    }
+
+    #[test]
+    fn test_exchange_request() {
+        let expected = json!({
+            "refresh_token": "token",
+            "client_id": CTX.client_id,
+            "client_secret": "secret",
+            "redirect_uri": "https://localhost:8080",
+            "grant_type": "refresh_token",
+        });
+        let req = exchange::Request {
+            refresh_token: "token".to_owned(),
+            client_secret: "secret".to_owned(),
+            redirect_uri: "https://localhost:8080".to_owned(),
+        };
+        assert_request(CTX, req, "https://api.trakt.tv/oauth/token", &expected);
+    }
+
+    #[test]
+    fn test_revoke_request() {
+        let expected = json!({
+            "token": "token",
+            "client_id": CTX.client_id,
+            "client_secret": "secret",
+        });
+        let req = revoke::Request {
+            token: "token".to_owned(),
+            client_secret: "secret".to_owned(),
+        };
+        assert_request(CTX, req, "https://api.trakt.tv/oauth/revoke", &expected);
+    }
+
+    #[test]
+    fn test_device_code_request() {
+        let expected = json!({
+            "client_id": CTX.client_id,
+        });
+        let req = device_code::Request;
+        assert_request(
+            CTX,
+            req,
+            "https://api.trakt.tv/oauth/device/code",
+            &expected,
+        );
+    }
+
+    #[test]
+    fn test_poll_token_request() {
+        let expected = json!({
+            "code": "code",
+            "client_id": CTX.client_id,
+            "client_secret": "secret",
+        });
+        let req = poll_token::Request {
+            device_code: "code".to_owned(),
+            client_secret: "secret".to_owned(),
+        };
+        assert_request(
+            CTX,
+            req,
+            "https://api.trakt.tv/oauth/device/token",
+            &expected,
+        );
+    }
+}

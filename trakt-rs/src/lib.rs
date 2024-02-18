@@ -76,3 +76,39 @@ pub use trakt_core::{
 };
 
 time::serde::format_description!(iso8601_date, Date, "[year]-[month]-[day]");
+
+#[cfg(test)]
+mod tests {
+    use serde::{Deserialize, Serialize};
+    use time::{Date, Month};
+
+    use super::*;
+
+    #[test]
+    fn test_iso8601_date() {
+        #[derive(Debug, Serialize, Deserialize)]
+        struct TestDate {
+            #[serde(with = "iso8601_date")]
+            date: Date,
+        }
+
+        let date = TestDate {
+            date: Date::from_calendar_date(2021, Month::December, 31).unwrap(),
+        };
+        let json = serde_json::to_string(&date).unwrap();
+        assert_eq!(json, r#"{"date":"2021-12-31"}"#);
+
+        let date = TestDate {
+            date: Date::from_calendar_date(2024, Month::April, 1).unwrap(),
+        };
+        let json = serde_json::to_string(&date).unwrap();
+        assert_eq!(json, r#"{"date":"2024-04-01"}"#);
+
+        let json = r#"{"date":"2024-04-01"}"#;
+        let date: TestDate = serde_json::from_str(json).unwrap();
+        assert_eq!(
+            date.date,
+            Date::from_calendar_date(2024, Month::April, 1).unwrap()
+        );
+    }
+}

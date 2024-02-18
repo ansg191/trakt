@@ -9,7 +9,11 @@ use trakt_core::{
 
 static CLIENT: OnceLock<Client> = OnceLock::new();
 
-pub fn assert_request<R: Request>(ctx: Context, req: R, exp_url: &str, exp_body: &str) {
+pub fn assert_request<R, T>(ctx: Context, req: R, exp_url: &str, exp_body: &T)
+where
+    R: Request,
+    T: ToString + ?Sized,
+{
     let http_req = req.try_into_http_request::<Vec<u8>>(ctx).unwrap();
 
     assert_eq!(http_req.method(), R::METADATA.method);
@@ -30,7 +34,10 @@ pub fn assert_request<R: Request>(ctx: Context, req: R, exp_url: &str, exp_body:
         );
     }
 
-    assert_eq!(String::from_utf8_lossy(http_req.body()), exp_body);
+    assert_eq!(
+        String::from_utf8_lossy(http_req.body()),
+        exp_body.to_string()
+    );
 }
 
 pub fn execute<R: Request>(ctx: Context, req: R) -> Result<R::Response, Error> {
