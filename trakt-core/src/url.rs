@@ -555,6 +555,7 @@ impl<'a> ser::Serializer for &'a mut UrlValueSerializer {
     }
 }
 
+#[derive(Debug)]
 struct ErrorSerializer;
 
 impl ser::SerializeSeq for ErrorSerializer {
@@ -666,6 +667,8 @@ fn utf8_percent_encode(input: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use serde::Serializer;
+
     use super::*;
 
     #[test]
@@ -714,7 +717,7 @@ mod tests {
     }
 
     #[test]
-    fn test_construct_url() {
+    fn construct_url_normal() {
         #[derive(Serialize)]
         struct Params {
             id: i32,
@@ -735,5 +738,349 @@ mod tests {
 
         let url = construct_url(base_url, endpoint, &params, &query).unwrap();
         assert_eq!(url, "https://example.com/shows/1?page=1");
+    }
+
+    #[test]
+    fn construct_url_no_query() {
+        #[derive(Serialize)]
+        struct Params {
+            id: i32,
+        }
+        #[derive(Serialize)]
+        struct Query;
+
+        let base_url = "https://example.com";
+        let endpoint = "/shows/{id}";
+        let params = Params { id: 1 };
+        let query = Query;
+
+        let url = construct_url(base_url, endpoint, &params, &query).unwrap();
+        assert_eq!(url, "https://example.com/shows/1");
+    }
+
+    #[test]
+    fn construct_url_unfilled() {
+        #[derive(Serialize)]
+        struct Params {
+            id: i32,
+        }
+        #[derive(Serialize)]
+        struct Query;
+
+        let base_url = "https://example.com";
+        let endpoint = "/shows/{id}/{unfilled}";
+        let params = Params { id: 1 };
+        let query = Query;
+
+        let res = construct_url(base_url, endpoint, &params, &query).unwrap_err();
+        assert_eq!(
+            res.to_string(),
+            "Url params error: Unfilled field: unfilled"
+        );
+    }
+
+    #[test]
+    fn construct_url_invalid_endpoint() {
+        #[derive(Serialize)]
+        struct Params {
+            id: i32,
+        }
+        #[derive(Serialize)]
+        struct Query;
+
+        let base_url = "https://example.com";
+        let endpoint = "/shows/{{id}";
+        let params = Params { id: 1 };
+        let query = Query;
+
+        let res = construct_url(base_url, endpoint, &params, &query).unwrap_err();
+        assert_eq!(res.to_string(), "Url params error: Invalid endpoint");
+    }
+
+    #[test]
+    fn construct_url_empty() {
+        #[derive(Serialize)]
+        struct Params;
+        #[derive(Serialize)]
+        struct Query;
+
+        let base_url = "https://example.com";
+        let endpoint = "/shows";
+        let params = Params;
+        let query = Query;
+
+        let url = construct_url(base_url, endpoint, &params, &query).unwrap();
+        assert_eq!(url, "https://example.com/shows");
+    }
+
+    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+    #[test]
+    fn url_value_serializer() {
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_bool(true).unwrap();
+        assert_eq!(serializer.value, "true");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_bool(false).unwrap();
+        assert_eq!(serializer.value, "false");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_i8(1).unwrap();
+        assert_eq!(serializer.value, "1");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_i16(-1).unwrap();
+        assert_eq!(serializer.value, "-1");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_i32(1024).unwrap();
+        assert_eq!(serializer.value, "1024");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_i64(1024).unwrap();
+        assert_eq!(serializer.value, "1024");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_u8(1).unwrap();
+        assert_eq!(serializer.value, "1");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_u16(256).unwrap();
+        assert_eq!(serializer.value, "256");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_u32(1024).unwrap();
+        assert_eq!(serializer.value, "1024");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_u64(1024).unwrap();
+        assert_eq!(serializer.value, "1024");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_f32(2.5).unwrap();
+        assert_eq!(serializer.value, "2.5");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_f64(-2.5).unwrap();
+        assert_eq!(serializer.value, "-2.5");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_char('a').unwrap();
+        assert_eq!(serializer.value, "a");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_char('🚀').unwrap();
+        assert_eq!(serializer.value, "%F0%9F%9A%80");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_str("hello?").unwrap();
+        assert_eq!(serializer.value, "hello%3F");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_bytes(b"hello?\xc3\x28\x00").unwrap();
+        assert_eq!(serializer.value, "hello%3F%C3(%00");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_none().unwrap();
+        assert_eq!(serializer.value, "");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_some(&true).unwrap();
+        assert_eq!(serializer.value, "true");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_unit().unwrap();
+        assert_eq!(serializer.value, "");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_unit_struct("name").unwrap();
+        assert_eq!(serializer.value, "");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer
+            .serialize_unit_variant("name", 0, "variant")
+            .unwrap();
+        assert_eq!(serializer.value, "variant");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer.serialize_newtype_struct("name", &true).unwrap();
+        assert_eq!(serializer.value, "true");
+
+        let mut serializer = UrlValueSerializer::default();
+        serializer
+            .serialize_newtype_variant("name", 0, "variant", &true)
+            .unwrap();
+        assert_eq!(serializer.value, "true");
+
+        let mut serializer = UrlValueSerializer::default();
+        assert_eq!(
+            serializer.serialize_seq(None).unwrap_err(),
+            UrlError::ValueNotSupported
+        );
+
+        let mut serializer = UrlValueSerializer::default();
+        assert_eq!(
+            serializer.serialize_tuple(0).unwrap_err(),
+            UrlError::ValueNotSupported
+        );
+
+        let mut serializer = UrlValueSerializer::default();
+        assert_eq!(
+            serializer.serialize_tuple_struct("name", 0).unwrap_err(),
+            UrlError::ValueNotSupported
+        );
+
+        let mut serializer = UrlValueSerializer::default();
+        assert_eq!(
+            serializer
+                .serialize_tuple_variant("name", 0, "variant", 0)
+                .unwrap_err(),
+            UrlError::ValueNotSupported
+        );
+
+        let mut serializer = UrlValueSerializer::default();
+        assert_eq!(
+            serializer.serialize_map(None).unwrap_err(),
+            UrlError::ValueNotSupported
+        );
+
+        let mut serializer = UrlValueSerializer::default();
+        assert_eq!(
+            serializer.serialize_struct("name", 0).unwrap_err(),
+            UrlError::ValueNotSupported
+        );
+
+        let mut serializer = UrlValueSerializer::default();
+        assert_eq!(
+            serializer
+                .serialize_struct_variant("name", 0, "variant", 0)
+                .unwrap_err(),
+            UrlError::ValueNotSupported
+        );
+    }
+
+    #[allow(clippy::too_many_lines)]
+    #[test]
+    fn url_serializer() {
+        let mut serializer = UrlSerializer {
+            url: String::new(),
+            parts: vec![],
+        };
+
+        assert_eq!(
+            true.serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            1i8.serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            1i16.serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            1i32.serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            1i64.serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            1u8.serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            1u16.serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            1u32.serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            1u64.serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            2.5f32.serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            (-2.5f64).serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            'a'.serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            "hello?".serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            serializer
+                .serialize_bytes(b"hello?\xc3\x28\x00")
+                .unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert!(None::<bool>.serialize(&mut serializer).is_ok());
+        assert_eq!(
+            Some(true).serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert!(().serialize(&mut serializer).is_ok());
+        assert_eq!(
+            "name".serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+        assert_eq!(
+            (0, "variant").serialize(&mut serializer).unwrap_err(),
+            UrlError::ValueNotSupported
+        );
+        assert_eq!(
+            Ok::<_, bool>(true).serialize(&mut serializer).unwrap_err(),
+            UrlError::TopLevel
+        );
+
+        #[allow(clippy::items_after_statements)]
+        #[derive(Serialize)]
+        struct Params {
+            id: i32,
+        }
+        let params = Params { id: 1 };
+
+        let mut serializer = UrlSerializer {
+            url: String::new(),
+            parts: vec![
+                Part::Param(Param::Value("raw".to_owned())),
+                Part::Param(Param::Key("id")),
+            ],
+        };
+
+        params.serialize(&mut serializer).unwrap();
+        assert_eq!(
+            serializer.parts,
+            vec![
+                Part::Param(Param::Value("raw".to_owned())),
+                Part::Param(Param::Value("1".to_owned())),
+            ]
+        );
+
+        let params = Params { id: 1 };
+
+        let mut serializer = UrlSerializer {
+            url: String::new(),
+            parts: vec![
+                Part::Param(Param::Value("raw".to_owned())),
+                Part::Param(Param::Key("i")),
+            ],
+        };
+
+        assert_eq!(
+            params.serialize(&mut serializer).unwrap_err(),
+            UrlError::KeyNotFound("id")
+        );
     }
 }
