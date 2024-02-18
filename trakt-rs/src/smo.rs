@@ -82,19 +82,6 @@ pub enum Period {
     All,
 }
 
-impl Period {
-    #[must_use]
-    pub const fn as_str(&self) -> &str {
-        match self {
-            Self::Daily => "daily",
-            Self::Weekly => "weekly",
-            Self::Monthly => "monthly",
-            Self::Yearly => "yearly",
-            Self::All => "all",
-        }
-    }
-}
-
 /// 2-letter country code
 pub type Country = TwoLetter;
 
@@ -110,7 +97,7 @@ impl TwoLetter {
     pub fn new(code: &str) -> Self {
         let mut bytes = [0; 2];
         bytes.copy_from_slice(code.as_bytes());
-        Self(bytes)
+        unsafe { Self::from_bytes_unchecked(bytes) }
     }
 
     /// Create a `TwoLetter` from bytes without checking if the bytes are valid UTF-8

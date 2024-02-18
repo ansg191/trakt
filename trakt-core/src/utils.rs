@@ -21,7 +21,7 @@ impl Default for Pagination {
 }
 
 impl Pagination {
-    const DEFAULT: Self = Self { page: 1, limit: 10 };
+    const DEFAULT: Self = Self::new(1, 10);
 
     #[inline]
     #[must_use]
