@@ -12,5 +12,6 @@ pub mod certifications;
 pub mod checkin;
 pub mod comments;
 pub mod country;
+pub mod genres;
 pub mod movies;
 pub mod shows;
