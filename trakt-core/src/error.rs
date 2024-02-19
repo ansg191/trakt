@@ -79,6 +79,8 @@ pub enum IntoHttpError {
     QueryParams(#[from] serde_urlencoded::ser::Error),
     #[error("Missing oauth token")]
     MissingToken,
+    #[error("Invalid comment")]
+    Validation(String),
 }
 
 #[derive(Debug, thiserror::Error)]

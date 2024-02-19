@@ -18,12 +18,31 @@ pub enum Id {
     Tmdb(u64),
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+impl From<Id> for Ids {
+    fn from(value: Id) -> Self {
+        let mut ret = Self::default();
+        match value {
+            Id::Trakt(trakt) => ret.trakt = Some(trakt),
+            Id::Slug(slug) => ret.slug = Some(slug),
+            Id::Tvdb(tvdb) => ret.tvdb = Some(tvdb),
+            Id::Imdb(imdb) => ret.imdb = Some(imdb),
+            Id::Tmdb(tmdb) => ret.tmdb = Some(tmdb),
+        }
+        ret
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
 pub struct Ids {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub trakt: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub slug: Option<SmolStr>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tvdb: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub imdb: Option<SmolStr>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tmdb: Option<u64>,
 }
 
@@ -148,6 +167,7 @@ pub struct Comment {
     pub likes: u32,
     pub user_stats: UserStats,
     pub user: User,
+    pub sharing: Option<Sharing>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
@@ -218,4 +238,11 @@ pub struct MovieReleaseEvent {
     #[serde(with = "crate::iso8601_date")]
     pub release_date: Date,
     pub movie: Movie,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
+pub struct Sharing {
+    pub twitter: bool,
+    pub mastodon: bool,
+    pub tumblr: bool,
 }
