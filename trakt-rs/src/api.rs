@@ -11,5 +11,6 @@ pub mod calendars;
 pub mod certifications;
 pub mod checkin;
 pub mod comments;
+pub mod country;
 pub mod movies;
 pub mod shows;
