@@ -9,12 +9,12 @@ pub mod checkin {
     //! <https://trakt.docs.apiary.io/#reference/checkin/checkin/check-into-an-item>
 
     use bytes::BufMut;
-    use serde::{Deserialize, Serialize};
+    use serde::Deserialize;
     use serde_json::{json, Value};
     use time::OffsetDateTime;
     use trakt_core::{construct_url, error::IntoHttpError, AuthRequirement, Context, Metadata};
 
-    use crate::smo::{Episode, Id, Movie, Show};
+    use crate::smo::{Episode, Id, Ids, Movie, Sharing, Show};
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash)]
     pub struct Request<I: CheckinItem> {
@@ -22,13 +22,6 @@ pub mod checkin {
         pub sharing: Option<Sharing>,
         pub message: Option<String>,
         _phantom: std::marker::PhantomData<I>,
-    }
-
-    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
-    pub struct Sharing {
-        pub twitter: bool,
-        pub mastodon: bool,
-        pub tumblr: bool,
     }
 
     impl<I: CheckinItem> Request<I> {
@@ -77,17 +70,9 @@ pub mod checkin {
             let body = T::default();
             let mut writer = body.writer();
 
-            let id = match &self.id {
-                Id::Slug(slug) => json!({ "ids": { "slug": slug } }),
-                Id::Trakt(trakt) => json!({ "ids": { "trakt": trakt } }),
-                Id::Imdb(imdb) => json!({ "ids": { "imdb": imdb } }),
-                Id::Tmdb(tmdb) => json!({ "ids": { "tmdb": tmdb } }),
-                Id::Tvdb(tvdb) => json!({ "ids": { "tvdb": tvdb } }),
-            };
-
             let json = Value::Object({
                 let mut map = serde_json::Map::new();
-                map.insert(I::KEY.to_owned(), id);
+                map.insert(I::KEY.to_owned(), json!({ "ids": Ids::from(self.id) }));
                 if let Some(sharing) = self.sharing {
                     map.insert("sharing".to_owned(), json!(sharing));
                 }
@@ -190,7 +175,10 @@ mod tests {
     use trakt_core::{Context, Request};
 
     use super::*;
-    use crate::{smo::Id, test::assert_request};
+    use crate::{
+        smo::{Id, Sharing},
+        test::assert_request,
+    };
 
     const CTX: Context = Context {
         base_url: "https://api.trakt.tv",
@@ -220,7 +208,7 @@ mod tests {
         }))
         .unwrap();
         let mut request = checkin::Request::new_movie(Id::Trakt(1));
-        request.sharing = Some(checkin::Sharing {
+        request.sharing = Some(Sharing {
             twitter: true,
             mastodon: false,
             tumblr: true,

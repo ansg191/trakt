@@ -18,12 +18,31 @@ pub enum Id {
     Tmdb(u64),
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+impl From<Id> for Ids {
+    fn from(value: Id) -> Self {
+        let mut ret = Self::default();
+        match value {
+            Id::Trakt(trakt) => ret.trakt = Some(trakt),
+            Id::Slug(slug) => ret.slug = Some(slug),
+            Id::Tvdb(tvdb) => ret.tvdb = Some(tvdb),
+            Id::Imdb(imdb) => ret.imdb = Some(imdb),
+            Id::Tmdb(tmdb) => ret.tmdb = Some(tmdb),
+        }
+        ret
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
 pub struct Ids {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub trakt: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub slug: Option<SmolStr>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tvdb: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub imdb: Option<SmolStr>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tmdb: Option<u64>,
 }
 
@@ -148,6 +167,7 @@ pub struct Comment {
     pub likes: u32,
     pub user_stats: UserStats,
     pub user: User,
+    pub sharing: Option<Sharing>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
@@ -161,13 +181,13 @@ pub struct UserStats {
 pub struct List {
     pub name: EmojiString,
     pub description: EmojiString,
-    pub privacy: String,
+    pub privacy: ListPrivacy,
     pub share_link: String,
     pub r#type: ListType,
     pub display_numbers: bool,
     pub allow_comments: bool,
-    pub sort_by: String,
-    pub sort_how: String,
+    pub sort_by: ListSortBy,
+    pub sort_how: ListSortHow,
     #[serde(with = "time::serde::iso8601")]
     pub created_at: OffsetDateTime,
     #[serde(with = "time::serde::iso8601")]
@@ -186,6 +206,40 @@ pub enum ListType {
     Official,
     Watchlist,
     Favorites,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ListSortBy {
+    Rank,
+    Added,
+    Title,
+    Released,
+    Runtime,
+    Popularity,
+    Percentage,
+    Votes,
+    MyRating,
+    Random,
+    Watched,
+    Collected,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ListSortHow {
+    Asc,
+    Desc,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ListPrivacy {
+    #[default]
+    Private,
+    Link,
+    Friends,
+    Public,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -218,4 +272,58 @@ pub struct MovieReleaseEvent {
     #[serde(with = "crate::iso8601_date")]
     pub release_date: Date,
     pub movie: Movie,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
+pub struct Sharing {
+    pub twitter: bool,
+    pub mastodon: bool,
+    pub tumblr: bool,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum CommentType {
+    #[default]
+    All,
+    Reviews,
+    Shouts,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum CommentItemType {
+    #[default]
+    All,
+    Movies,
+    Shows,
+    Seasons,
+    Episodes,
+    Lists,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+#[serde(tag = "type")]
+pub enum CommentWithItem {
+    Movie {
+        movie: Box<Movie>,
+        comment: Comment,
+    },
+    Show {
+        show: Box<Show>,
+        comment: Comment,
+    },
+    Season {
+        season: Box<Season>,
+        comment: Comment,
+    },
+    Episode {
+        episode: Box<Episode>,
+        comment: Comment,
+    },
+    List {
+        list: Box<List>,
+        comment: Comment,
+    },
 }

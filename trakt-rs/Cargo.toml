@@ -23,6 +23,7 @@ smol_str = { version = "0.2", features = ["serde"] }
 time = { workspace = true }
 trakt-core = { workspace = true }
 trakt-macros = { workspace = true }
+unicode-segmentation = "1"
 
 [dev-dependencies]
 httpmock = "0.7"

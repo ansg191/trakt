@@ -10,5 +10,6 @@ pub mod auth;
 pub mod calendars;
 pub mod certifications;
 pub mod checkin;
+pub mod comments;
 pub mod movies;
 pub mod shows;
