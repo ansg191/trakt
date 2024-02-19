@@ -181,13 +181,13 @@ pub struct UserStats {
 pub struct List {
     pub name: EmojiString,
     pub description: EmojiString,
-    pub privacy: String,
+    pub privacy: ListPrivacy,
     pub share_link: String,
     pub r#type: ListType,
     pub display_numbers: bool,
     pub allow_comments: bool,
-    pub sort_by: String,
-    pub sort_how: String,
+    pub sort_by: ListSortBy,
+    pub sort_how: ListSortHow,
     #[serde(with = "time::serde::iso8601")]
     pub created_at: OffsetDateTime,
     #[serde(with = "time::serde::iso8601")]
@@ -206,6 +206,40 @@ pub enum ListType {
     Official,
     Watchlist,
     Favorites,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ListSortBy {
+    Rank,
+    Added,
+    Title,
+    Released,
+    Runtime,
+    Popularity,
+    Percentage,
+    Votes,
+    MyRating,
+    Random,
+    Watched,
+    Collected,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ListSortHow {
+    Asc,
+    Desc,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ListPrivacy {
+    #[default]
+    Private,
+    Link,
+    Friends,
+    Public,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -245,4 +279,51 @@ pub struct Sharing {
     pub twitter: bool,
     pub mastodon: bool,
     pub tumblr: bool,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum CommentType {
+    #[default]
+    All,
+    Reviews,
+    Shouts,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Default, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum CommentItemType {
+    #[default]
+    All,
+    Movies,
+    Shows,
+    Seasons,
+    Episodes,
+    Lists,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+#[serde(tag = "type")]
+pub enum CommentWithItem {
+    Movie {
+        movie: Box<Movie>,
+        comment: Comment,
+    },
+    Show {
+        show: Box<Show>,
+        comment: Comment,
+    },
+    Season {
+        season: Box<Season>,
+        comment: Comment,
+    },
+    Episode {
+        episode: Box<Episode>,
+        comment: Comment,
+    },
+    List {
+        list: Box<List>,
+        comment: Comment,
+    },
 }

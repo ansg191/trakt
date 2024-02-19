@@ -96,6 +96,394 @@ pub mod post {
     pub struct Response(pub Comment);
 }
 
+pub mod get {
+    //! Get a comment or reply
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/comments/comment/get-a-comment-or-reply>
+
+    use crate::smo::Comment;
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/comments/{id}",
+    )]
+    pub struct Request {
+        pub id: u64,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    pub struct Response(pub Comment);
+}
+
+pub mod update {
+    //! Update a comment or repl
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/comments/comment/update-a-comment-or-reply>
+
+    use bytes::BufMut;
+    use serde::Serialize;
+    use serde_json::json;
+    use trakt_core::{error::IntoHttpError, Context, Metadata};
+
+    use crate::smo::Comment;
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash)]
+    pub struct Request {
+        pub id: u64,
+        pub comment: String,
+        pub spoiler: bool,
+    }
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize)]
+    struct RequestParams {
+        id: u64,
+    }
+
+    impl trakt_core::Request for Request {
+        type Response = Response;
+        const METADATA: Metadata = Metadata {
+            endpoint: "/comments/{id}",
+            method: http::Method::PUT,
+            auth: trakt_core::AuthRequirement::Required,
+        };
+
+        fn try_into_http_request<T: Default + BufMut>(
+            self,
+            ctx: Context,
+        ) -> Result<http::Request<T>, IntoHttpError> {
+            let params = RequestParams { id: self.id };
+            let url =
+                trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &params, &())?;
+
+            let body = T::default();
+            let mut writer = body.writer();
+
+            let json = json!({
+                "comment": self.comment,
+                "spoiler": self.spoiler,
+            });
+            serde_json::to_writer(&mut writer, &json)?;
+
+            let request = http::Request::builder()
+                .method(Self::METADATA.method)
+                .uri(url)
+                .header("Content-Type", "application/json")
+                .header("trakt-api-version", "2")
+                .header("trakt-api-key", ctx.client_id);
+            let request = match ctx.oauth_token {
+                Some(token) => request.header("Authorization", format!("Bearer {token}")),
+                None => return Err(IntoHttpError::MissingToken),
+            };
+
+            Ok(request.body(writer.into_inner())?)
+        }
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    pub struct Response(pub Comment);
+}
+
+pub mod delete {
+    //! Delete a comment or reply
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/comments/comment/delete-a-comment-or-reply>
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/comments/{id}",
+    method = DELETE,
+    auth = Required,
+    )]
+    pub struct Request {
+        pub id: u64,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    #[trakt(expected = NO_CONTENT)]
+    pub struct Response;
+}
+
+pub mod get_replies {
+    //! Get comment replies
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/comments/comment/get-replies-for-a-comment>
+
+    use crate::smo::Comment;
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/comments/{id}/replies",
+    auth = Optional,
+    )]
+    pub struct Request {
+        pub id: u64,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    pub struct Response(pub Vec<Comment>);
+}
+
+pub mod post_reply {
+    //! Post a reply for a comment
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/comments/replies/post-a-reply-for-a-comment>
+
+    use bytes::BufMut;
+    use serde::Serialize;
+    use serde_json::json;
+    use trakt_core::{error::IntoHttpError, Context, Metadata};
+
+    use crate::smo::Comment;
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash)]
+    pub struct Request {
+        pub id: u64,
+        pub comment: String,
+        pub spoiler: bool,
+    }
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize)]
+    struct RequestParams {
+        id: u64,
+    }
+
+    impl trakt_core::Request for Request {
+        type Response = Response;
+        const METADATA: Metadata = Metadata {
+            endpoint: "/comments/{id}/replies",
+            method: http::Method::POST,
+            auth: trakt_core::AuthRequirement::Required,
+        };
+
+        fn try_into_http_request<T: Default + BufMut>(
+            self,
+            ctx: Context,
+        ) -> Result<http::Request<T>, IntoHttpError> {
+            let params = RequestParams { id: self.id };
+            let url =
+                trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &params, &())?;
+
+            let body = T::default();
+            let mut writer = body.writer();
+
+            let json = json!({
+                "comment": self.comment,
+                "spoiler": self.spoiler,
+            });
+            serde_json::to_writer(&mut writer, &json)?;
+
+            let request = http::Request::builder()
+                .method(Self::METADATA.method)
+                .uri(url)
+                .header("Content-Type", "application/json")
+                .header("trakt-api-version", "2")
+                .header("trakt-api-key", ctx.client_id);
+            let request = match ctx.oauth_token {
+                Some(token) => request.header("Authorization", format!("Bearer {token}")),
+                None => return Err(IntoHttpError::MissingToken),
+            };
+
+            Ok(request.body(writer.into_inner())?)
+        }
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    #[trakt(expected = CREATED)]
+    pub struct Response(pub Comment);
+}
+
+pub mod item {
+    //! Get attached media item for a comment
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/comments/item/get-the-attached-media-item>
+
+    use serde::Deserialize;
+
+    use crate::smo::{Episode, List, Movie, Season, Show};
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/comments/{id}/item",
+    )]
+    pub struct Request {
+        pub id: u64,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    pub struct Response(pub Item);
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
+    #[serde(rename_all = "lowercase")]
+    #[serde(tag = "type")]
+    pub enum Item {
+        Movie { movie: Box<Movie> },
+        Show { show: Box<Show> },
+        Season { season: Box<Season> },
+        Episode { episode: Box<Episode> },
+        List { list: Box<List> },
+    }
+}
+
+pub mod likes {
+    //! Get users who liked a comment
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/comments/likes/get-all-users-who-liked-a-comment>
+
+    use time::OffsetDateTime;
+    use trakt_core::PaginationResponse;
+
+    use crate::smo::User;
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/comments/{id}/likes",
+    )]
+    pub struct Request {
+        pub id: u64,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    pub struct Response {
+        #[trakt(pagination)]
+        pub users: PaginationResponse<ResponseItem>,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, serde::Deserialize)]
+    pub struct ResponseItem {
+        #[serde(with = "time::serde::iso8601")]
+        pub liked_at: OffsetDateTime,
+        pub user: User,
+    }
+}
+
+pub mod like {
+    //! Like a comment
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/comments/like/like-a-comment>
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/comments/{id}/like",
+    method = POST,
+    auth = Required,
+    )]
+    pub struct Request {
+        pub id: u64,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    #[trakt(expected = NO_CONTENT)]
+    pub struct Response;
+}
+
+pub mod remove_like {
+    //! Remove like from a comment
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/comments/like/remove-like-on-a-comment>
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/comments/{id}/like",
+    method = DELETE,
+    auth = Required,
+    )]
+    pub struct Request {
+        pub id: u64,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    #[trakt(expected = NO_CONTENT)]
+    pub struct Response;
+}
+
+pub mod trending {
+    //! Get trending comments
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/comments/like/get-trending-comments>
+
+    use trakt_core::PaginationResponse;
+
+    use crate::smo::{CommentItemType, CommentType, CommentWithItem};
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/comments/trending/{comment_type}/{tp}",
+    )]
+    pub struct Request {
+        pub comment_type: CommentType,
+        pub tp: CommentItemType,
+        pub include_replies: bool,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    pub struct Response {
+        #[trakt(pagination)]
+        pub comments: PaginationResponse<CommentWithItem>,
+    }
+}
+
+pub mod recent {
+    //! Get recently created comments
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/comments/trending/get-recently-created-comments>
+
+    use trakt_core::PaginationResponse;
+
+    use crate::smo::{CommentItemType, CommentType, CommentWithItem};
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/comments/recent/{comment_type}/{tp}",
+    )]
+    pub struct Request {
+        pub comment_type: CommentType,
+        pub tp: CommentItemType,
+        pub include_replies: bool,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    pub struct Response {
+        #[trakt(pagination)]
+        pub comments: PaginationResponse<CommentWithItem>,
+    }
+}
+
+pub mod recent_updated {
+    //! Get recently updated comments
+    //!
+    //! <https://trakt.docs.apiary.io/#reference/comments/updates/get-recently-updated-comments>
+
+    use trakt_core::PaginationResponse;
+
+    use crate::smo::{CommentItemType, CommentType, CommentWithItem};
+
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
+    #[trakt(
+    response = Response,
+    endpoint = "/comments/updates/{comment_type}/{tp}",
+    )]
+    pub struct Request {
+        pub comment_type: CommentType,
+        pub tp: CommentItemType,
+        pub include_replies: bool,
+    }
+
+    #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
+    pub struct Response {
+        #[trakt(pagination)]
+        pub comments: PaginationResponse<CommentWithItem>,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use serde_json::json;
@@ -180,5 +568,21 @@ mod tests {
             }),
         };
         assert_request(CTX, request, "https://api.trakt.tv/comments", &expected);
+    }
+
+    #[test]
+    fn update_comment_request() {
+        const COMMENT: &str = "The quick brown fox jumps over the lazy dog.";
+
+        let expected = json!({
+            "comment": COMMENT,
+            "spoiler": false,
+        });
+        let request = update::Request {
+            id: 42,
+            comment: COMMENT.to_owned(),
+            spoiler: false,
+        };
+        assert_request(CTX, request, "https://api.trakt.tv/comments/42", &expected);
     }
 }
