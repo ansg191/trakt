@@ -17,3 +17,4 @@ pub mod movies;
 pub mod scrobble;
 pub mod search;
 pub mod shows;
+pub mod users;
