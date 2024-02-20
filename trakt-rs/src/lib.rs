@@ -4,6 +4,7 @@
 //! [![docs.rs](https://img.shields.io/docsrs/trakt-rs)](https://docs.rs/trakt-rs)
 //! ![Crates.io License](https://img.shields.io/crates/l/trakt-rs)
 //! [![Rust](https://github.com/ansg191/trakt/actions/workflows/rust.yml/badge.svg)](https://github.com/ansg191/trakt/actions/workflows/rust.yml)
+//! [![codecov](https://codecov.io/gh/ansg191/trakt/graph/badge.svg?token=5UO8NZJ2C1)](https://codecov.io/gh/ansg191/trakt)
 //!
 //! Trakt.tv API Documentation: [https://trakt.docs.apiary.io](https://trakt.docs.apiary.io)
 //!
