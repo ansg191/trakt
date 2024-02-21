@@ -3,7 +3,10 @@ use std::{num::ParseIntError, str::FromStr};
 use http::{header::AsHeaderName, HeaderMap, StatusCode};
 use serde::Serialize;
 
-use crate::error::{ApiError, DeserializeError, FromHttpError, HeaderError};
+use crate::{
+    error::{ApiError, DeserializeError, FromHttpError, HeaderError, IntoHttpError},
+    AuthRequirement, Context, Metadata,
+};
 
 /// `Pagination` struct is used to specify the page number and the maximum number of items to be shown per page.
 ///
@@ -115,6 +118,39 @@ where
     }
 }
 
+/// Helper function to construct an HTTP request using the given context, metadata, and
+/// path/query/body values.
+///
+/// # Errors
+///
+/// Returns an `IntoHttpError` if the http request cannot be constructed.
+pub fn construct_req<B>(
+    ctx: &Context,
+    md: &Metadata,
+    path: &impl Serialize,
+    query: &impl Serialize,
+    body: B,
+) -> Result<http::Request<B>, IntoHttpError> {
+    let url = crate::construct_url(ctx.base_url, md.endpoint, path, query)?;
+
+    let request = http::Request::builder()
+        .method(&md.method)
+        .uri(url)
+        .header("Content-Type", "application/json")
+        .header("trakt-api-version", "2")
+        .header("trakt-api-key", ctx.client_id);
+    let request = match (md.auth, ctx.oauth_token) {
+        (AuthRequirement::None, _) | (AuthRequirement::Optional, None) => request,
+        (AuthRequirement::Optional | AuthRequirement::Required, Some(token)) => {
+            request.header("Authorization", format!("Bearer {token}"))
+        }
+        (AuthRequirement::Required, None) => {
+            return Err(IntoHttpError::MissingToken);
+        }
+    };
+    Ok(request.body(body)?)
+}
+
 #[cfg(test)]
 mod tests {
     use http::HeaderValue;
@@ -177,5 +213,82 @@ mod tests {
             handle_response_body::<_, String>(&response, StatusCode::OK),
             Err(FromHttpError::Deserialize(DeserializeError::Json(_)))
         ));
+    }
+
+    #[allow(clippy::cognitive_complexity)]
+    #[test]
+    fn test_construct_req() {
+        let mut ctx = Context {
+            base_url: "https://api.trakt.tv",
+            client_id: "client id",
+            oauth_token: None,
+        };
+        let mut md = Metadata {
+            endpoint: "/test",
+            method: http::Method::GET,
+            auth: AuthRequirement::None,
+        };
+
+        let req = construct_req(&ctx, &md, &(), &(), "body").unwrap();
+        assert_eq!(req.method(), &http::Method::GET);
+        assert_eq!(req.uri(), "https://api.trakt.tv/test");
+        assert_eq!(
+            req.headers().get("Content-Type").unwrap(),
+            "application/json"
+        );
+        assert_eq!(req.headers().get("trakt-api-version").unwrap(), "2");
+        assert_eq!(req.headers().get("trakt-api-key").unwrap(), "client id");
+        assert!(req.headers().get("Authorization").is_none());
+        assert_eq!(req.into_body(), "body");
+
+        md.auth = AuthRequirement::Required;
+        ctx.oauth_token = Some("token");
+
+        let req = construct_req(&ctx, &md, &(), &(), "body").unwrap();
+        assert_eq!(req.method(), &http::Method::GET);
+        assert_eq!(req.uri(), "https://api.trakt.tv/test");
+        assert_eq!(
+            req.headers().get("Content-Type").unwrap(),
+            "application/json"
+        );
+        assert_eq!(req.headers().get("trakt-api-version").unwrap(), "2");
+        assert_eq!(req.headers().get("trakt-api-key").unwrap(), "client id");
+        assert_eq!(req.headers().get("Authorization").unwrap(), "Bearer token");
+        assert_eq!(req.into_body(), "body");
+
+        md.auth = AuthRequirement::Required;
+        ctx.oauth_token = None;
+        let result = construct_req(&ctx, &md, &(), &(), "body").unwrap_err();
+        assert!(matches!(result, IntoHttpError::MissingToken));
+
+        md.auth = AuthRequirement::Optional;
+        ctx.oauth_token = None;
+
+        let req = construct_req(&ctx, &md, &(), &(), "body").unwrap();
+        assert_eq!(req.method(), &http::Method::GET);
+        assert_eq!(req.uri(), "https://api.trakt.tv/test");
+        assert_eq!(
+            req.headers().get("Content-Type").unwrap(),
+            "application/json"
+        );
+        assert_eq!(req.headers().get("trakt-api-version").unwrap(), "2");
+        assert_eq!(req.headers().get("trakt-api-key").unwrap(), "client id");
+        assert!(req.headers().get("Authorization").is_none());
+        assert_eq!(req.into_body(), "body");
+
+        md.auth = AuthRequirement::Optional;
+        ctx.oauth_token = Some("token");
+
+        let req = construct_req(&ctx, &md, &(), &(), "body").unwrap();
+        assert_eq!(req.method(), &http::Method::GET);
+        assert_eq!(req.uri(), "https://api.trakt.tv/test");
+        assert_eq!(
+            req.headers().get("Content-Type").unwrap(),
+            "application/json"
+        );
+        assert_eq!(req.headers().get("trakt-api-version").unwrap(), "2");
+        assert_eq!(req.headers().get("trakt-api-key").unwrap(), "client id");
+        assert_eq!(req.headers().get("Authorization").unwrap(), "Bearer token");
+        assert_eq!(req.into_body(), "body");
     }
 }

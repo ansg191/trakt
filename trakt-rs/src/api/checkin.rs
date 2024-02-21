@@ -12,7 +12,7 @@ pub mod checkin {
     use serde::Deserialize;
     use serde_json::{json, Value};
     use time::OffsetDateTime;
-    use trakt_core::{construct_url, error::IntoHttpError, AuthRequirement, Context, Metadata};
+    use trakt_core::{error::IntoHttpError, AuthRequirement, Context, Metadata};
 
     use crate::smo::{Episode, Id, Ids, Movie, Sharing, Show};
 
@@ -65,8 +65,6 @@ pub mod checkin {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let url = construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
-
             let body = T::default();
             let mut writer = body.writer();
 
@@ -84,18 +82,7 @@ pub mod checkin {
 
             serde_json::to_writer(&mut writer, &json)?;
 
-            let request = http::Request::builder()
-                .method(Self::METADATA.method)
-                .uri(url)
-                .header("Content-Type", "application/json")
-                .header("trakt-api-version", "2")
-                .header("trakt-api-key", ctx.client_id);
-            let request = match ctx.oauth_token {
-                Some(token) => request.header("Authorization", format!("Bearer {token}")),
-                None => return Err(IntoHttpError::MissingToken),
-            };
-
-            Ok(request.body(writer.into_inner())?)
+            trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
         }
     }
 
