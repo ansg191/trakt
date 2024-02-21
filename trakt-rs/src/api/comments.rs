@@ -9,7 +9,7 @@ pub mod post {
 
     use bytes::BufMut;
     use serde_json::{json, Value};
-    use trakt_core::{construct_url, error::IntoHttpError, Context, Metadata};
+    use trakt_core::{error::IntoHttpError, Context, Metadata};
     use unicode_segmentation::UnicodeSegmentation;
 
     use crate::smo::{Comment, Id, Ids, Sharing};
@@ -51,8 +51,6 @@ pub mod post {
                 ));
             }
 
-            let url = construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
-
             let body = T::default();
             let mut writer = body.writer();
 
@@ -76,18 +74,7 @@ pub mod post {
             });
             serde_json::to_writer(&mut writer, &json)?;
 
-            let request = http::Request::builder()
-                .method(Self::METADATA.method)
-                .uri(url)
-                .header("Content-Type", "application/json")
-                .header("trakt-api-version", "2")
-                .header("trakt-api-key", ctx.client_id);
-            let request = match ctx.oauth_token {
-                Some(token) => request.header("Authorization", format!("Bearer {token}")),
-                None => return Err(IntoHttpError::MissingToken),
-            };
-
-            Ok(request.body(writer.into_inner())?)
+            trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
         }
     }
 
@@ -152,10 +139,6 @@ pub mod update {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let params = RequestParams { id: self.id };
-            let url =
-                trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &params, &())?;
-
             let body = T::default();
             let mut writer = body.writer();
 
@@ -165,18 +148,8 @@ pub mod update {
             });
             serde_json::to_writer(&mut writer, &json)?;
 
-            let request = http::Request::builder()
-                .method(Self::METADATA.method)
-                .uri(url)
-                .header("Content-Type", "application/json")
-                .header("trakt-api-version", "2")
-                .header("trakt-api-key", ctx.client_id);
-            let request = match ctx.oauth_token {
-                Some(token) => request.header("Authorization", format!("Bearer {token}")),
-                None => return Err(IntoHttpError::MissingToken),
-            };
-
-            Ok(request.body(writer.into_inner())?)
+            let params = RequestParams { id: self.id };
+            trakt_core::construct_req(&ctx, &Self::METADATA, &params, &(), writer.into_inner())
         }
     }
 
@@ -262,10 +235,6 @@ pub mod post_reply {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let params = RequestParams { id: self.id };
-            let url =
-                trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &params, &())?;
-
             let body = T::default();
             let mut writer = body.writer();
 
@@ -275,18 +244,8 @@ pub mod post_reply {
             });
             serde_json::to_writer(&mut writer, &json)?;
 
-            let request = http::Request::builder()
-                .method(Self::METADATA.method)
-                .uri(url)
-                .header("Content-Type", "application/json")
-                .header("trakt-api-version", "2")
-                .header("trakt-api-key", ctx.client_id);
-            let request = match ctx.oauth_token {
-                Some(token) => request.header("Authorization", format!("Bearer {token}")),
-                None => return Err(IntoHttpError::MissingToken),
-            };
-
-            Ok(request.body(writer.into_inner())?)
+            let params = RequestParams { id: self.id };
+            trakt_core::construct_req(&ctx, &Self::METADATA, &params, &(), writer.into_inner())
         }
     }
 

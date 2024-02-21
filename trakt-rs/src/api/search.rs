@@ -155,15 +155,7 @@ pub mod id_lookup {
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
             let (path, query) = self.try_into()?;
-            let url =
-                trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &path, &query)?;
-            let request = http::Request::builder()
-                .method(Self::METADATA.method)
-                .uri(url)
-                .header("Content-Type", "application/json")
-                .header("trakt-api-version", "2")
-                .header("trakt-api-key", ctx.client_id);
-            Ok(request.body(T::default())?)
+            trakt_core::construct_req(&ctx, &Self::METADATA, &path, &query, T::default())
         }
     }
 

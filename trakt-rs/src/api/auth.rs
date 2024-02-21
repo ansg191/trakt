@@ -30,8 +30,6 @@ pub mod token {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let url = trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
-
             let body = T::default();
             let mut writer = body.writer();
 
@@ -44,14 +42,7 @@ pub mod token {
             });
             serde_json::to_writer(&mut writer, &json)?;
 
-            let request = http::Request::builder()
-                .method(Self::METADATA.method)
-                .uri(url)
-                .header("Content-Type", "application/json")
-                .header("trakt-api-version", "2")
-                .header("trakt-api-key", ctx.client_id)
-                .body(writer.into_inner())?;
-            Ok(request)
+            trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
         }
     }
 
@@ -93,8 +84,6 @@ pub mod exchange {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let url = trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
-
             let body = T::default();
             let mut writer = body.writer();
 
@@ -107,14 +96,7 @@ pub mod exchange {
             });
             serde_json::to_writer(&mut writer, &json)?;
 
-            let request = http::Request::builder()
-                .method(Self::METADATA.method)
-                .uri(url)
-                .header("Content-Type", "application/json")
-                .header("trakt-api-version", "2")
-                .header("trakt-api-key", ctx.client_id)
-                .body(writer.into_inner())?;
-            Ok(request)
+            trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
         }
     }
 
@@ -155,8 +137,6 @@ pub mod revoke {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let url = trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
-
             let body = T::default();
             let mut writer = body.writer();
 
@@ -167,14 +147,7 @@ pub mod revoke {
             });
             serde_json::to_writer(&mut writer, &json)?;
 
-            let request = http::Request::builder()
-                .method(Self::METADATA.method)
-                .uri(url)
-                .header("Content-Type", "application/json")
-                .header("trakt-api-version", "2")
-                .header("trakt-api-key", ctx.client_id)
-                .body(writer.into_inner())?;
-            Ok(request)
+            trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
         }
     }
 
@@ -205,8 +178,6 @@ pub mod device_code {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let url = trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
-
             let body = T::default();
             let mut writer = body.writer();
 
@@ -215,14 +186,7 @@ pub mod device_code {
             });
             serde_json::to_writer(&mut writer, &json)?;
 
-            let request = http::Request::builder()
-                .method(Self::METADATA.method)
-                .uri(url)
-                .header("Content-Type", "application/json")
-                .header("trakt-api-version", "2")
-                .header("trakt-api-key", ctx.client_id)
-                .body(writer.into_inner())?;
-            Ok(request)
+            trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
         }
     }
 
@@ -262,8 +226,6 @@ pub mod poll_token {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
-            let url = trakt_core::construct_url(ctx.base_url, Self::METADATA.endpoint, &(), &())?;
-
             let body = T::default();
             let mut writer = body.writer();
 
@@ -274,14 +236,7 @@ pub mod poll_token {
             });
             serde_json::to_writer(&mut writer, &json)?;
 
-            let request = http::Request::builder()
-                .method(Self::METADATA.method)
-                .uri(url)
-                .header("Content-Type", "application/json")
-                .header("trakt-api-version", "2")
-                .header("trakt-api-key", ctx.client_id)
-                .body(writer.into_inner())?;
-            Ok(request)
+            trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
         }
     }
 
