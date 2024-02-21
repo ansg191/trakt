@@ -14,4 +14,5 @@ pub mod comments;
 pub mod country;
 pub mod genres;
 pub mod movies;
+pub mod search;
 pub mod shows;
