@@ -63,32 +63,13 @@ pub fn derive_request(input: TokenStream) -> TokenStream {
                 ctx: _trakt_core::Context,
             ) -> Result<_http::Request<T>, _trakt_core::error::IntoHttpError> {
                 let (path, query): (#p_ident, #q_ident) = self.into();
-
-                let url = _trakt_core::construct_url(
-                    ctx.base_url,
-                    #endpoint,
+                _trakt_core::construct_req(
+                    &ctx,
+                    &Self::METADATA,
                     &path,
                     &query,
-                )?;
-
-                let request = _http::Request::builder()
-                    .method(Self::METADATA.method)
-                    .uri(url)
-                    .header("Content-Type", "application/json")
-                    .header("trakt-api-version", "2")
-                    .header("trakt-api-key", ctx.client_id);
-
-                let request = match (Self::METADATA.auth, ctx.oauth_token) {
-                    (_trakt_core::AuthRequirement::None, _) | (_trakt_core::AuthRequirement::Optional, None) => request,
-                    (_trakt_core::AuthRequirement::Optional | _trakt_core::AuthRequirement::Required, Some(token)) => {
-                        request.header("Authorization", format!("Bearer {}", token))
-                    }
-                    (_trakt_core::AuthRequirement::Required, None) => {
-                        return Err(_trakt_core::error::IntoHttpError::MissingToken);
-                    }
-                };
-
-                Ok(request.body(T::default())?)
+                    T::default(),
+                )
             }
         }
     };
