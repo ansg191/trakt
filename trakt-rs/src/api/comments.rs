@@ -300,9 +300,7 @@ pub mod item {
     //!
     //! <https://trakt.docs.apiary.io/#reference/comments/item/get-the-attached-media-item>
 
-    use serde::Deserialize;
-
-    use crate::smo::{Episode, List, Movie, Season, Show};
+    use crate::smo::Item;
 
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
     #[trakt(
@@ -315,17 +313,6 @@ pub mod item {
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash, trakt_macros::Response)]
     pub struct Response(pub Item);
-
-    #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
-    #[serde(rename_all = "lowercase")]
-    #[serde(tag = "type")]
-    pub enum Item {
-        Movie { movie: Box<Movie> },
-        Show { show: Box<Show> },
-        Season { season: Box<Season> },
-        Episode { episode: Box<Episode> },
-        List { list: Box<List> },
-    }
 }
 
 pub mod likes {

@@ -327,3 +327,14 @@ pub enum CommentWithItem {
         comment: Comment,
     },
 }
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
+#[serde(rename_all = "lowercase")]
+#[serde(tag = "type")]
+pub enum Item {
+    Movie { movie: Box<Movie> },
+    Show { show: Box<Show> },
+    Season { season: Box<Season> },
+    Episode { episode: Box<Episode> },
+    List { list: Box<List> },
+}
