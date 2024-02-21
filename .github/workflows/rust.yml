@@ -54,6 +54,9 @@ jobs:
         with:
           components: clippy
 
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
       - name: Run clippy
         run: cargo clippy --all-targets --all-features
 
