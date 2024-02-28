@@ -4,7 +4,7 @@ use syn::{spanned::Spanned, DeriveInput};
 
 use crate::response::{check_pagination, Pagination};
 
-pub fn derive_paginated(input: &DeriveInput) -> syn::Result<TokenStream> {
+pub fn derive_paginated<const WRAP: bool>(input: &DeriveInput) -> syn::Result<TokenStream> {
     let name = &input.ident;
 
     // Disallow Generic structs
@@ -42,12 +42,16 @@ pub fn derive_paginated(input: &DeriveInput) -> syn::Result<TokenStream> {
         }
     };
 
-    let wrap = quote! {
-        const _: () = {
-            #[allow(unused_extern_crates, clippy::useless_attribute)]
-            extern crate trakt_core as _trakt_core;
-            #expanded
-        };
+    let wrap = if WRAP {
+        quote! {
+            const _: () = {
+                #[allow(unused_extern_crates, clippy::useless_attribute)]
+                extern crate trakt_core as _trakt_core;
+                #expanded
+            };
+        }
+    } else {
+        expanded
     };
 
     Ok(wrap)

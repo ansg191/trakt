@@ -32,6 +32,6 @@ pub fn derive_response(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(Paginated, attributes(trakt))]
 pub fn derive_paginated(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    paginated::derive_paginated(&input)
+    paginated::derive_paginated::<true>(&input)
         .map_or_else(|e| e.into_compile_error().into(), TokenStream::from)
 }
