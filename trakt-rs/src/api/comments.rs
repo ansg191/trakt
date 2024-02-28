@@ -8,17 +8,16 @@ pub mod post {
     //! <https://trakt.docs.apiary.io/#reference/comments/comments/post-a-comment>
 
     use bytes::BufMut;
-    use serde_json::{json, Value};
     use trakt_core::{error::IntoHttpError, Context, Metadata};
     use unicode_segmentation::UnicodeSegmentation;
 
     use crate::smo::{Comment, Id, Ids, Sharing};
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-    pub struct Request {
+    pub struct Request<'a> {
         pub tp: Type,
         pub id: Id,
-        pub comment: String,
+        pub comment: &'a str,
         pub spoiler: bool,
         pub sharing: Option<Sharing>,
     }
@@ -32,7 +31,7 @@ pub mod post {
         List,
     }
 
-    impl trakt_core::Request for Request {
+    impl trakt_core::Request for Request<'_> {
         type Response = Response;
         const METADATA: Metadata = Metadata {
             endpoint: "/comments",
@@ -44,6 +43,26 @@ pub mod post {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
+            #[derive(Debug, serde::Serialize)]
+            #[serde(rename_all = "lowercase")]
+            enum BodyInner {
+                Movie { ids: Ids },
+                Show { ids: Ids },
+                Season { ids: Ids },
+                Episode { ids: Ids },
+                List { ids: Ids },
+            }
+
+            #[derive(Debug, serde::Serialize)]
+            struct Body<'a> {
+                comment: &'a str,
+                spoiler: bool,
+                #[serde(skip_serializing_if = "Option::is_none")]
+                sharing: Option<Sharing>,
+                #[serde(flatten)]
+                item: BodyInner,
+            }
+
             // Check that comments have at least 5 words
             if self.comment.unicode_words().count() < 5 {
                 return Err(IntoHttpError::Validation(
@@ -54,24 +73,28 @@ pub mod post {
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = Value::Object({
-                let mut map = serde_json::Map::new();
-                map.insert("comment".to_owned(), Value::String(self.comment));
-                map.insert("spoiler".to_owned(), Value::Bool(self.spoiler));
-                if let Some(sharing) = self.sharing {
-                    map.insert("sharing".to_owned(), json!(sharing));
-                }
-
-                let id = json!({ "ids": Ids::from(self.id) });
-                match self.tp {
-                    Type::Movie => map.insert("movie".to_owned(), id),
-                    Type::Show => map.insert("show".to_owned(), id),
-                    Type::Season => map.insert("season".to_owned(), id),
-                    Type::Episode => map.insert("episode".to_owned(), id),
-                    Type::List => map.insert("list".to_owned(), id),
-                };
-                map
-            });
+            let json = Body {
+                comment: self.comment,
+                spoiler: self.spoiler,
+                sharing: self.sharing,
+                item: match self.tp {
+                    Type::Movie => BodyInner::Movie {
+                        ids: Ids::from(self.id),
+                    },
+                    Type::Show => BodyInner::Show {
+                        ids: Ids::from(self.id),
+                    },
+                    Type::Season => BodyInner::Season {
+                        ids: Ids::from(self.id),
+                    },
+                    Type::Episode => BodyInner::Episode {
+                        ids: Ids::from(self.id),
+                    },
+                    Type::List => BodyInner::List {
+                        ids: Ids::from(self.id),
+                    },
+                },
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
@@ -110,15 +133,14 @@ pub mod update {
 
     use bytes::BufMut;
     use serde::Serialize;
-    use serde_json::json;
     use trakt_core::{error::IntoHttpError, Context, Metadata};
 
     use crate::smo::Comment;
 
-    #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-    pub struct Request {
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+    pub struct Request<'a> {
         pub id: u64,
-        pub comment: String,
+        pub comment: &'a str,
         pub spoiler: bool,
     }
 
@@ -127,7 +149,7 @@ pub mod update {
         id: u64,
     }
 
-    impl trakt_core::Request for Request {
+    impl trakt_core::Request for Request<'_> {
         type Response = Response;
         const METADATA: Metadata = Metadata {
             endpoint: "/comments/{id}",
@@ -139,13 +161,19 @@ pub mod update {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
+            #[derive(Debug, serde::Serialize)]
+            struct Body<'a> {
+                comment: &'a str,
+                spoiler: bool,
+            }
+
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = json!({
-                "comment": self.comment,
-                "spoiler": self.spoiler,
-            });
+            let json = Body {
+                comment: self.comment,
+                spoiler: self.spoiler,
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             let params = RequestParams { id: self.id };
@@ -206,15 +234,14 @@ pub mod post_reply {
 
     use bytes::BufMut;
     use serde::Serialize;
-    use serde_json::json;
     use trakt_core::{error::IntoHttpError, Context, Metadata};
 
     use crate::smo::Comment;
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-    pub struct Request {
+    pub struct Request<'a> {
         pub id: u64,
-        pub comment: String,
+        pub comment: &'a str,
         pub spoiler: bool,
     }
 
@@ -223,7 +250,7 @@ pub mod post_reply {
         id: u64,
     }
 
-    impl trakt_core::Request for Request {
+    impl trakt_core::Request for Request<'_> {
         type Response = Response;
         const METADATA: Metadata = Metadata {
             endpoint: "/comments/{id}/replies",
@@ -235,13 +262,19 @@ pub mod post_reply {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
+            #[derive(Debug, serde::Serialize)]
+            struct Body<'a> {
+                comment: &'a str,
+                spoiler: bool,
+            }
+
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = json!({
-                "comment": self.comment,
-                "spoiler": self.spoiler,
-            });
+            let json = Body {
+                comment: self.comment,
+                spoiler: self.spoiler,
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             let params = RequestParams { id: self.id };
@@ -462,7 +495,7 @@ mod tests {
         let request = post::Request {
             tp: post::Type::Movie,
             id: Trakt(1),
-            comment: COMMENT.to_owned(),
+            comment: COMMENT,
             spoiler: false,
             sharing: None,
         };
@@ -476,7 +509,7 @@ mod tests {
         let request = post::Request {
             tp: post::Type::Show,
             id: Imdb("tt1234567".into()),
-            comment: COMMENT.to_owned(),
+            comment: COMMENT,
             spoiler: false,
             sharing: None,
         };
@@ -505,7 +538,7 @@ mod tests {
         let request = post::Request {
             tp: post::Type::Episode,
             id: Slug("slug".into()),
-            comment: COMMENT.to_owned(),
+            comment: COMMENT,
             spoiler: false,
             sharing: Some(Sharing {
                 twitter: false,
@@ -526,7 +559,7 @@ mod tests {
         });
         let request = update::Request {
             id: 42,
-            comment: COMMENT.to_owned(),
+            comment: COMMENT,
             spoiler: false,
         };
         assert_req!(CTX, request, "https://api.trakt.tv/comments/42", &expected);
