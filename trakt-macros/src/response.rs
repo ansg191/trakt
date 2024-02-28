@@ -112,7 +112,7 @@ fn derive_pagination(
         Ok(Self { #ident })
     };
 
-    let extra = crate::paginated::derive_paginated(input)?;
+    let extra = crate::paginated::derive_paginated::<false>(input)?;
 
     Ok(DeriveResponse { body, extra })
 }
