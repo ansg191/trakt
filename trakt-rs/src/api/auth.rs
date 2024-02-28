@@ -262,7 +262,7 @@ mod tests {
     use trakt_core::Context;
 
     use super::*;
-    use crate::test::assert_request;
+    use crate::test::assert_req;
 
     const CTX: Context = Context {
         base_url: "https://api.trakt.tv",
@@ -284,7 +284,7 @@ mod tests {
             client_secret: "secret".to_owned(),
             redirect_uri: "https://localhost:8080".to_owned(),
         };
-        assert_request(CTX, req, "https://api.trakt.tv/oauth/token", &expected);
+        assert_req!(CTX, req, "https://api.trakt.tv/oauth/token", &expected);
     }
 
     #[test]
@@ -301,7 +301,7 @@ mod tests {
             client_secret: "secret".to_owned(),
             redirect_uri: "https://localhost:8080".to_owned(),
         };
-        assert_request(CTX, req, "https://api.trakt.tv/oauth/token", &expected);
+        assert_req!(CTX, req, "https://api.trakt.tv/oauth/token", &expected);
     }
 
     #[test]
@@ -315,7 +315,7 @@ mod tests {
             token: "token".to_owned(),
             client_secret: "secret".to_owned(),
         };
-        assert_request(CTX, req, "https://api.trakt.tv/oauth/revoke", &expected);
+        assert_req!(CTX, req, "https://api.trakt.tv/oauth/revoke", &expected);
     }
 
     #[test]
@@ -324,7 +324,7 @@ mod tests {
             "client_id": CTX.client_id,
         });
         let req = device_code::Request;
-        assert_request(
+        assert_req!(
             CTX,
             req,
             "https://api.trakt.tv/oauth/device/code",
@@ -343,7 +343,7 @@ mod tests {
             device_code: "code".to_owned(),
             client_secret: "secret".to_owned(),
         };
-        assert_request(
+        assert_req!(
             CTX,
             req,
             "https://api.trakt.tv/oauth/device/token",

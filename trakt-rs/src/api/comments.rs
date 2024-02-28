@@ -441,7 +441,7 @@ mod tests {
             Id::{Imdb, Slug, Trakt},
             Sharing,
         },
-        test::assert_request,
+        test::assert_req,
     };
 
     const CTX: Context = Context {
@@ -466,7 +466,7 @@ mod tests {
             spoiler: false,
             sharing: None,
         };
-        assert_request(CTX, request, "https://api.trakt.tv/comments", &expected);
+        assert_req!(CTX, request, "https://api.trakt.tv/comments", &expected);
     }
 
     #[test]
@@ -513,7 +513,7 @@ mod tests {
                 tumblr: false,
             }),
         };
-        assert_request(CTX, request, "https://api.trakt.tv/comments", &expected);
+        assert_req!(CTX, request, "https://api.trakt.tv/comments", &expected);
     }
 
     #[test]
@@ -529,6 +529,6 @@ mod tests {
             comment: COMMENT.to_owned(),
             spoiler: false,
         };
-        assert_request(CTX, request, "https://api.trakt.tv/comments/42", &expected);
+        assert_req!(CTX, request, "https://api.trakt.tv/comments/42", &expected);
     }
 }
