@@ -301,7 +301,7 @@ pub mod tests {
     use trakt_core::Context;
 
     use super::*;
-    use crate::{smo::Id, test::assert_request};
+    use crate::{smo::Id, test::assert_req};
 
     const CTX: Context = Context {
         base_url: "https://api.trakt.tv",
@@ -316,14 +316,14 @@ pub mod tests {
             "progress": 0.0
         });
         let req = start::Request::new_movie(Id::Trakt(1), 0.0);
-        assert_request(CTX, req, "https://api.trakt.tv/scrobble/start", &exp);
+        assert_req!(CTX, req, "https://api.trakt.tv/scrobble/start", &exp);
 
         let exp = json!({
             "episode": { "ids": { "slug": "abc" } },
             "progress": 5.0
         });
         let req = start::Request::new_episode(Id::Slug("abc".into()), 5.0);
-        assert_request(CTX, req, "https://api.trakt.tv/scrobble/start", &exp);
+        assert_req!(CTX, req, "https://api.trakt.tv/scrobble/start", &exp);
     }
 
     #[test]
@@ -333,14 +333,14 @@ pub mod tests {
             "progress": 0.0
         });
         let req = pause::Request::new_movie(Id::Tvdb(1), 0.0);
-        assert_request(CTX, req, "https://api.trakt.tv/scrobble/pause", &exp);
+        assert_req!(CTX, req, "https://api.trakt.tv/scrobble/pause", &exp);
 
         let exp = json!({
             "episode": { "ids": { "imdb": "tt12345" } },
             "progress": 10.0
         });
         let req = pause::Request::new_episode(Id::Imdb("tt12345".into()), 10.0);
-        assert_request(CTX, req, "https://api.trakt.tv/scrobble/pause", &exp);
+        assert_req!(CTX, req, "https://api.trakt.tv/scrobble/pause", &exp);
     }
 
     #[test]
@@ -350,13 +350,13 @@ pub mod tests {
             "progress": 0.0
         });
         let req = stop::Request::new_movie(Id::Tmdb(1), 0.0);
-        assert_request(CTX, req, "https://api.trakt.tv/scrobble/stop", &exp);
+        assert_req!(CTX, req, "https://api.trakt.tv/scrobble/stop", &exp);
 
         let exp = json!({
             "episode": { "ids": { "slug": "abc" } },
             "progress": 50.0
         });
         let req = stop::Request::new_episode(Id::Slug("abc".into()), 50.0);
-        assert_request(CTX, req, "https://api.trakt.tv/scrobble/stop", &exp);
+        assert_req!(CTX, req, "https://api.trakt.tv/scrobble/stop", &exp);
     }
 }

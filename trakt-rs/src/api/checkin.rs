@@ -164,7 +164,7 @@ mod tests {
     use super::*;
     use crate::{
         smo::{Id, Sharing},
-        test::assert_request,
+        test::assert_req,
     };
 
     const CTX: Context = Context {
@@ -177,7 +177,7 @@ mod tests {
     fn checkin_movie_request() {
         let expected = r#"{"movie":{"ids":{"trakt":1}}}"#;
         let request = checkin::Request::new_movie(Id::Trakt(1));
-        assert_request(CTX, request, "https://api.trakt.tv/checkin", expected);
+        assert_req!(CTX, request, "https://api.trakt.tv/checkin", expected);
     }
 
     #[test]
@@ -201,7 +201,7 @@ mod tests {
             tumblr: true,
         });
         request.message = Some("Hello, world!".into());
-        assert_request(CTX, request, "https://api.trakt.tv/checkin", &expected);
+        assert_req!(CTX, request, "https://api.trakt.tv/checkin", &expected);
     }
 
     #[test]
@@ -224,6 +224,6 @@ mod tests {
     fn checkin_episode_request() {
         let expected = r#"{"episode":{"ids":{"imdb":"tt12345"}}}"#;
         let request = checkin::Request::new_episode(Id::Imdb("tt12345".into()));
-        assert_request(CTX, request, "https://api.trakt.tv/checkin", expected);
+        assert_req!(CTX, request, "https://api.trakt.tv/checkin", expected);
     }
 }

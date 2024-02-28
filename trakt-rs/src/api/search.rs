@@ -171,7 +171,7 @@ mod tests {
     use trakt_core::{construct_url, error::IntoHttpError, Context, Pagination, Request};
 
     use super::*;
-    use crate::{smo::Id, test::assert_request};
+    use crate::{smo::Id, test::assert_req};
 
     const CTX: Context = Context {
         base_url: "https://api.trakt.tv",
@@ -224,11 +224,12 @@ mod tests {
             tp: SearchType::MOVIE,
             pagination: Pagination::default(),
         };
-        assert_request(
+        assert_req!(
             CTX,
             req,
             "https://api.trakt.tv/search/trakt/1?type=movie&page=1&limit=10",
             "",
+            false,
         );
 
         let req = id_lookup::Request {
@@ -236,11 +237,12 @@ mod tests {
             tp: SearchType::EPISODE | SearchType::SHOW,
             pagination: Pagination::default(),
         };
-        assert_request(
+        assert_req!(
             CTX,
             req,
             "https://api.trakt.tv/search/tvdb/1?type=show%2Cepisode&page=1&limit=10",
             "",
+            false,
         );
 
         let req = id_lookup::Request {
@@ -248,11 +250,12 @@ mod tests {
             tp: SearchType::empty(),
             pagination: Pagination::default(),
         };
-        assert_request(
+        assert_req!(
             CTX,
             req,
             "https://api.trakt.tv/search/imdb/tt12345?page=1&limit=10",
             "",
+            false,
         );
 
         let req = id_lookup::Request {
