@@ -4,21 +4,40 @@
 
 use serde::Deserialize;
 
-use crate::smo::{Episode, Movie, Sharing, Show};
+use crate::smo::{Episode, Ids, Movie, Sharing, Show};
+
+#[derive(Debug, serde::Serialize)]
+enum BodyInner {
+    Movie { ids: Ids },
+    Episode { ids: Ids },
+}
+
+#[derive(Debug, serde::Serialize)]
+struct Body {
+    #[serde(flatten)]
+    inner: BodyInner,
+    progress: f64,
+}
 
 mod _private {
     use crate::smo::{Episode, Movie};
 
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+    pub enum CheckinItemType {
+        Movie,
+        Episode,
+    }
+
     pub trait Sealed {
-        const KEY: &'static str;
+        const KEY: CheckinItemType;
     }
 
     impl Sealed for Movie {
-        const KEY: &'static str = "movie";
+        const KEY: CheckinItemType = CheckinItemType::Movie;
     }
 
     impl Sealed for Episode {
-        const KEY: &'static str = "episode";
+        const KEY: CheckinItemType = CheckinItemType::Episode;
     }
 }
 
@@ -69,10 +88,9 @@ pub mod start {
     //! <https://trakt.docs.apiary.io/#reference/scrobble/start/start-watching-in-a-media-center>
 
     use bytes::BufMut;
-    use serde_json::{json, Value};
     use trakt_core::{error::IntoHttpError, Context, Metadata};
 
-    use super::ScrobbleItem;
+    use super::{Body, BodyInner, ScrobbleItem, _private::CheckinItemType};
     use crate::smo::{Episode, Id, Ids, Movie};
 
     #[derive(Debug, Clone, PartialEq)]
@@ -125,12 +143,17 @@ pub mod start {
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = Value::Object({
-                let mut map = serde_json::Map::new();
-                map.insert(I::KEY.to_owned(), json!({ "ids": Ids::from(self.id) }));
-                map.insert("progress".to_owned(), json!(self.progress));
-                map
-            });
+            let json = Body {
+                inner: match I::KEY {
+                    CheckinItemType::Movie => BodyInner::Movie {
+                        ids: Ids::from(self.id),
+                    },
+                    CheckinItemType::Episode => BodyInner::Episode {
+                        ids: Ids::from(self.id),
+                    },
+                },
+                progress: self.progress,
+            };
 
             serde_json::to_writer(&mut writer, &json)?;
 
@@ -145,9 +168,9 @@ pub mod pause {
     //! <https://trakt.docs.apiary.io/#reference/scrobble/pause/pause-watching-in-a-media-center>
 
     use bytes::BufMut;
-    use serde_json::{json, Value};
     use trakt_core::{error::IntoHttpError, Context, Metadata};
 
+    use super::{Body, BodyInner, _private::CheckinItemType};
     use crate::{
         api::scrobble::ScrobbleItem,
         smo::{Episode, Id, Ids, Movie},
@@ -203,13 +226,17 @@ pub mod pause {
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = Value::Object({
-                let mut map = serde_json::Map::new();
-                map.insert(I::KEY.to_owned(), json!({ "ids": Ids::from(self.id) }));
-                map.insert("progress".to_owned(), json!(self.progress));
-                map
-            });
-
+            let json = Body {
+                inner: match I::KEY {
+                    CheckinItemType::Movie => BodyInner::Movie {
+                        ids: Ids::from(self.id),
+                    },
+                    CheckinItemType::Episode => BodyInner::Episode {
+                        ids: Ids::from(self.id),
+                    },
+                },
+                progress: self.progress,
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
@@ -223,9 +250,9 @@ pub mod stop {
     //! <https://trakt.docs.apiary.io/#reference/scrobble/stop/stop-or-finish-watching-in-a-media-center>
 
     use bytes::BufMut;
-    use serde_json::{json, Value};
     use trakt_core::{error::IntoHttpError, Context, Metadata};
 
+    use super::{Body, BodyInner, _private::CheckinItemType};
     use crate::{
         api::scrobble::ScrobbleItem,
         smo::{Episode, Id, Ids, Movie},
@@ -281,13 +308,17 @@ pub mod stop {
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = Value::Object({
-                let mut map = serde_json::Map::new();
-                map.insert(I::KEY.to_owned(), json!({ "ids": Ids::from(self.id) }));
-                map.insert("progress".to_owned(), json!(self.progress));
-                map
-            });
-
+            let json = Body {
+                inner: match I::KEY {
+                    CheckinItemType::Movie => BodyInner::Movie {
+                        ids: Ids::from(self.id),
+                    },
+                    CheckinItemType::Episode => BodyInner::Episode {
+                        ids: Ids::from(self.id),
+                    },
+                },
+                progress: self.progress,
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
