@@ -9,8 +9,8 @@ pub mod list {
 
     use std::collections::HashMap;
 
+    use compact_str::CompactString;
     use serde::Serialize;
-    use smol_str::SmolStr;
 
     use crate::smo::Country;
 
@@ -35,8 +35,8 @@ pub mod list {
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash, serde::Deserialize)]
     pub struct Certification {
-        pub name: SmolStr,
-        pub slug: SmolStr,
-        pub description: String,
+        pub name: CompactString,
+        pub slug: CompactString,
+        pub description: CompactString,
     }
 }

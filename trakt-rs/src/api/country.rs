@@ -7,8 +7,8 @@ pub mod list {
     //!
     //! <https://trakt.docs.apiary.io/#reference/countries/list/get-countries>
 
+    use compact_str::CompactString;
     use serde::{Deserialize, Serialize};
-    use smol_str::SmolStr;
 
     use crate::smo::Country;
 
@@ -33,7 +33,7 @@ pub mod list {
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
     pub struct ResponseItem {
-        pub name: SmolStr,
+        pub name: CompactString,
         pub code: Country,
     }
 }
