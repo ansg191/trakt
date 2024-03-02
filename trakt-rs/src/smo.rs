@@ -3,8 +3,8 @@
 mod de;
 mod ser;
 
+use compact_str::CompactString;
 use serde::{Deserialize, Serialize};
-use smol_str::SmolStr;
 use time::{Date, OffsetDateTime};
 use trakt_core::EmojiString;
 
@@ -12,9 +12,9 @@ use trakt_core::EmojiString;
 #[serde(untagged)]
 pub enum Id {
     Trakt(u64),
-    Slug(SmolStr),
+    Slug(CompactString),
     Tvdb(u64),
-    Imdb(SmolStr),
+    Imdb(CompactString),
     Tmdb(u64),
 }
 
@@ -37,25 +37,25 @@ pub struct Ids {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub trakt: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub slug: Option<SmolStr>,
+    pub slug: Option<CompactString>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tvdb: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub imdb: Option<SmolStr>,
+    pub imdb: Option<CompactString>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tmdb: Option<u64>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Movie {
-    pub title: String,
+    pub title: CompactString,
     pub year: u16,
     pub ids: Ids,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Show {
-    pub title: String,
+    pub title: CompactString,
     pub year: u16,
     pub ids: Ids,
 }
@@ -70,21 +70,21 @@ pub struct Season {
 pub struct Episode {
     pub season: u16,
     pub number: u16,
-    pub title: String,
+    pub title: CompactString,
     pub ids: Ids,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Person {
-    pub name: String,
+    pub name: CompactString,
     pub ids: Ids,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct User {
-    pub username: String,
+    pub username: CompactString,
     pub private: bool,
-    pub name: String,
+    pub name: CompactString,
     pub vip: bool,
     pub vip_ep: bool,
     pub ids: Ids,
@@ -254,7 +254,7 @@ pub struct Distribution(pub [u32; 10]);
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize)]
 pub struct Studio {
-    pub name: String,
+    pub name: CompactString,
     pub country: Country,
     pub ids: Ids,
 }

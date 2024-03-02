@@ -7,8 +7,8 @@ pub mod list {
     //!
     //! <https://trakt.docs.apiary.io/#reference/genres/list/get-genres>
 
+    use compact_str::CompactString;
     use serde::{Deserialize, Serialize};
-    use smol_str::SmolStr;
 
     #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, trakt_macros::Request)]
     #[trakt(
@@ -31,7 +31,7 @@ pub mod list {
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize)]
     pub struct ResponseItem {
-        pub name: SmolStr,
-        pub slug: SmolStr,
+        pub name: CompactString,
+        pub slug: CompactString,
     }
 }
