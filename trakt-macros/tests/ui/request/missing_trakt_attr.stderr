@@ -1,0 +1,7 @@
+error: missing #[trakt(response = "...")] attribute
+ --> tests/ui/request/missing_trakt_attr.rs:1:24
+  |
+1 | #[derive(Debug, Clone, trakt_macros::Request)]
+  |                        ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the derive macro `trakt_macros::Request` (in Nightly builds, run with -Z macro-backtrace for more info)
