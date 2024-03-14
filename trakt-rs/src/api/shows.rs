@@ -606,8 +606,8 @@ pub mod reset {
     //!
     //! <https://trakt.docs.apiary.io/#reference/shows/reset-watched-progress>
 
-    #[allow(clippy::module_inception)]
     pub mod reset {
+        #![allow(clippy::module_inception)]
         //! Reset show progress
         //!
         //! <https://trakt.docs.apiary.io/#reference/shows/reset-watched-progress/reset-show-progress>

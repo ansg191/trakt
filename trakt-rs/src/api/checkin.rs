@@ -2,8 +2,8 @@
 //!
 //! <https://trakt.docs.apiary.io/#reference/checkin>
 
-#[allow(clippy::module_inception)]
 pub mod checkin {
+    #![allow(clippy::module_inception)]
     //! Check into an item
     //!
     //! <https://trakt.docs.apiary.io/#reference/checkin/checkin/check-into-an-item>
