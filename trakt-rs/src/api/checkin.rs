@@ -10,10 +10,10 @@ pub mod checkin {
 
     use bytes::BufMut;
     use serde::Deserialize;
-    use serde_json::{json, Value};
     use time::OffsetDateTime;
     use trakt_core::{error::IntoHttpError, AuthRequirement, Context, Metadata};
 
+    use self::_private::CheckinItemType;
     use crate::smo::{Episode, Id, Ids, Movie, Sharing, Show};
 
     #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -65,21 +65,38 @@ pub mod checkin {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
+            #[derive(Debug, serde::Serialize)]
+            #[serde(rename_all = "lowercase")]
+            enum BodyInner {
+                Movie { ids: Ids },
+                Episode { ids: Ids },
+            }
+
+            #[derive(Debug, serde::Serialize)]
+            struct Body {
+                #[serde(flatten)]
+                item: BodyInner,
+                #[serde(skip_serializing_if = "Option::is_none")]
+                sharing: Option<Sharing>,
+                #[serde(skip_serializing_if = "Option::is_none")]
+                message: Option<String>,
+            }
+
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = Value::Object({
-                let mut map = serde_json::Map::new();
-                map.insert(I::KEY.to_owned(), json!({ "ids": Ids::from(self.id) }));
-                if let Some(sharing) = self.sharing {
-                    map.insert("sharing".to_owned(), json!(sharing));
-                }
-                if let Some(message) = self.message {
-                    map.insert("message".to_owned(), json!(message));
-                }
-                map
-            });
-
+            let json = Body {
+                item: match I::TYPE {
+                    CheckinItemType::Movie => BodyInner::Movie {
+                        ids: self.id.into(),
+                    },
+                    CheckinItemType::Episode => BodyInner::Episode {
+                        ids: self.id.into(),
+                    },
+                },
+                sharing: self.sharing,
+                message: self.message,
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
@@ -90,15 +107,21 @@ pub mod checkin {
         use crate::smo::{Episode, Movie};
 
         pub trait Sealed {
-            const KEY: &'static str;
+            const TYPE: CheckinItemType;
+        }
+
+        #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+        pub enum CheckinItemType {
+            Movie,
+            Episode,
         }
 
         impl Sealed for Movie {
-            const KEY: &'static str = "movie";
+            const TYPE: CheckinItemType = CheckinItemType::Movie;
         }
 
         impl Sealed for Episode {
-            const KEY: &'static str = "episode";
+            const TYPE: CheckinItemType = CheckinItemType::Episode;
         }
     }
 
@@ -164,7 +187,7 @@ mod tests {
     use super::*;
     use crate::{
         smo::{Id, Sharing},
-        test::assert_request,
+        test::assert_req,
     };
 
     const CTX: Context = Context {
@@ -177,7 +200,7 @@ mod tests {
     fn checkin_movie_request() {
         let expected = r#"{"movie":{"ids":{"trakt":1}}}"#;
         let request = checkin::Request::new_movie(Id::Trakt(1));
-        assert_request(CTX, request, "https://api.trakt.tv/checkin", expected);
+        assert_req!(CTX, request, "https://api.trakt.tv/checkin", expected);
     }
 
     #[test]
@@ -201,7 +224,7 @@ mod tests {
             tumblr: true,
         });
         request.message = Some("Hello, world!".into());
-        assert_request(CTX, request, "https://api.trakt.tv/checkin", &expected);
+        assert_req!(CTX, request, "https://api.trakt.tv/checkin", &expected);
     }
 
     #[test]
@@ -224,6 +247,6 @@ mod tests {
     fn checkin_episode_request() {
         let expected = r#"{"episode":{"ids":{"imdb":"tt12345"}}}"#;
         let request = checkin::Request::new_episode(Id::Imdb("tt12345".into()));
-        assert_request(CTX, request, "https://api.trakt.tv/checkin", expected);
+        assert_req!(CTX, request, "https://api.trakt.tv/checkin", expected);
     }
 }
