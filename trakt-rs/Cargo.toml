@@ -28,4 +28,4 @@ unicode-segmentation = "1"
 
 [dev-dependencies]
 httpmock = "0.7"
-reqwest = { version = "0.11", default-features = false, features = ["blocking"] }
+ureq = { version = "2.9", default-features = false, features = ["http-crate"] }
