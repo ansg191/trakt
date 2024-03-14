@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - *(api)* adds scrobble endpoints
 - *(api)* adds search endpoints
 
+### Changed
+- upgrades `http` from 0.2 to 1
+
 ### Other
 - switches from reqwest to ureq for tests
 - Revert "Upgrades to http 1"

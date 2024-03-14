@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - adds `construct_req` function
 
+### Changed
+- upgrades `http` from 0.2 to 1
+
 ### Fixed
 - incorrect display message in error
 
