@@ -1,17 +1,11 @@
 [advisories]
-vulnerability = "deny"
-unmaintained = "deny"
-yanked = "deny"
-notice = "deny"
+version = 2
 
 [licenses]
-unlicensed = "deny"
 allow = [
     "MIT",
     "Apache-2.0",
 ]
-copyleft = "deny"
-allow-osi-fsf-free = "neither"
 exceptions = [
     { allow = ["Unicode-DFS-2016"], name = "unicode-ident" }
 ]

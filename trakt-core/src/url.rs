@@ -6,10 +6,13 @@ use crate::error::{IntoHttpError, UrlError};
 /// Constructs a complete URL from a base URL, an endpoint, and parameters.
 ///
 /// - The `base_url` is the base URL of the API: `https://api.trakt.tv`.
-/// - The `endpoint` is the path of the specific endpoint with parameters enclosed in curly braces:
+/// - The `endpoint` is the path of the specific endpoint with parameters
+///   enclosed in curly braces:
 /// `/shows/{id}/seasons/{season}/episodes/{episode}`.
-/// - The `params` is a struct that will be serialized into the parameters of the `endpoint`.
-/// - The `query` is a struct that will be serialized into the query parameters of the URL.
+/// - The `params` is a struct that will be serialized into the parameters of
+///   the `endpoint`.
+/// - The `query` is a struct that will be serialized into the query parameters
+///   of the URL.
 ///
 /// # Errors
 ///

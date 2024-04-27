@@ -8,7 +8,8 @@ use crate::{
     AuthRequirement, Context, Metadata,
 };
 
-/// `Pagination` struct is used to specify the page number and the maximum number of items to be shown per page.
+/// `Pagination` struct is used to specify the page number and the maximum
+/// number of items to be shown per page.
 ///
 /// Default values are `page = 1` and `limit = 10`.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize)]
@@ -33,7 +34,8 @@ impl Pagination {
     }
 }
 
-/// `PaginationResponse` struct is used to store the paginated response from the API.
+/// `PaginationResponse` struct is used to store the paginated response from the
+/// API.
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct PaginationResponse<T> {
     pub items: Vec<T>,
@@ -44,11 +46,13 @@ pub struct PaginationResponse<T> {
 }
 
 impl<T> PaginationResponse<T> {
-    /// Create a new `PaginationResponse` instance from items and Trakt.tv API response headers.
+    /// Create a new `PaginationResponse` instance from items and Trakt.tv API
+    /// response headers.
     ///
     /// # Errors
     ///
-    /// Returns a `DeserializeError` if the headers are missing or if the header values are not valid.
+    /// Returns a `DeserializeError` if the headers are missing or if the header
+    /// values are not valid.
     pub fn from_headers(items: Vec<T>, map: &HeaderMap) -> Result<Self, DeserializeError> {
         let current_page = parse_from_header(map, "X-Pagination-Page")?;
         let items_per_page = parse_from_header(map, "X-Pagination-Limit")?;
@@ -79,8 +83,9 @@ impl<T> PaginationResponse<T> {
 ///
 /// # Errors
 ///
-/// Returns a `DeserializeError` if the header is missing, if the header value is not a valid
-/// string, or if the string value cannot be parsed to an integer.
+/// Returns a `DeserializeError` if the header is missing, if the header value
+/// is not a valid string, or if the string value cannot be parsed to an
+/// integer.
 pub fn parse_from_header<T, K>(map: &HeaderMap, key: K) -> Result<T, DeserializeError>
 where
     T: FromStr<Err = ParseIntError>,
@@ -96,13 +101,13 @@ where
 
 /// Helper function to handle the response body from the API.
 ///
-/// Will check if the response has the expected status code and will try to deserialize the
-/// response body.
+/// Will check if the response has the expected status code and will try to
+/// deserialize the response body.
 ///
 /// # Errors
 ///
-/// Returns a `FromHttpError` if the response status code is not the expected one or if the body
-/// failed to be deserialized.
+/// Returns a `FromHttpError` if the response status code is not the expected
+/// one or if the body failed to be deserialized.
 pub fn handle_response_body<B, T>(
     response: &http::Response<B>,
     expected: StatusCode,
@@ -118,8 +123,8 @@ where
     }
 }
 
-/// Helper function to construct an HTTP request using the given context, metadata, and
-/// path/query/body values.
+/// Helper function to construct an HTTP request using the given context,
+/// metadata, and path/query/body values.
 ///
 /// # Errors
 ///

@@ -2,11 +2,12 @@ use std::{fmt::Formatter, ops::Deref};
 
 use serde::{de::Error, Deserialize, Deserializer};
 
-/// A string that deserializes strings containing emoji shortcodes into their respective unicode
-/// characters.
+/// A string that deserializes strings containing emoji shortcodes into their
+/// respective unicode characters.
 ///
-/// Use `EmojiString::from` to create a new instance of `EmojiString` from a `&str`, replacing any
-/// emoji shortcodes with their respective unicode characters.
+/// Use `EmojiString::from` to create a new instance of `EmojiString` from a
+/// `&str`, replacing any emoji shortcodes with their respective unicode
+/// characters.
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct EmojiString(String);
 
