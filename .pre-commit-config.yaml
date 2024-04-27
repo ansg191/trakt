@@ -11,12 +11,6 @@ repos:
       - id: check-toml
       - id: forbid-submodules
       - id: mixed-line-ending
-  - repo: https://github.com/ansg191/pre-commit-rust
-    rev: v1.1
-    hooks:
-      - id: fmt
-      - id: cargo-check
-      - id: clippy
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.15.0
     hooks:
