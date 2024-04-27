@@ -77,7 +77,7 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-tarpaulin
-          version: "^0.27"
+          version: "^0.28"
 
       - name: Run tarpaulin
         run: cargo tarpaulin --skip-clean --out xml -e trakt-macros --workspace
