@@ -8,11 +8,11 @@ use crate::{error::IntoHttpError, response::Response};
 /// All requests in the API should implement this trait.
 /// It provides a method to convert the request into an HTTP request.
 ///
-/// The implementing type can perform any necessary validation on the request before converting it
-/// into an HTTP request.
+/// The implementing type can perform any necessary validation on the request
+/// before converting it into an HTTP request.
 ///
-/// The [`Self::Response`] associated type is the type that should be used to represent the response
-/// returned by the server.
+/// The [`Self::Response`] associated type is the type that should be used to
+/// represent the response returned by the server.
 pub trait Request: Sized + Clone {
     type Response: Response;
 
@@ -21,15 +21,16 @@ pub trait Request: Sized + Clone {
 
     /// Tries to convert the request into an HTTP request.
     ///
-    /// On endpoints requiring authentication, the `token` field in `ctx` should be provided.
-    /// If not, the request will fail to convert.
+    /// On endpoints requiring authentication, the `token` field in `ctx` should
+    /// be provided. If not, the request will fail to convert.
     ///
     /// # Arguments
     ///
     /// * `ctx`: The context for the request.
     ///
     /// # Errors
-    /// This function will return an error if the request cannot be converted into an HTTP request.
+    /// This function will return an error if the request cannot be converted
+    /// into an HTTP request.
     fn try_into_http_request<T: Default + BufMut>(
         self,
         ctx: Context,
@@ -38,8 +39,8 @@ pub trait Request: Sized + Clone {
 
 /// Represents metadata for an API endpoint.
 ///
-/// This struct holds information about the endpoint, such as the URL endpoint, HTTP method, and
-/// authorization requirement.
+/// This struct holds information about the endpoint, such as the URL endpoint,
+/// HTTP method, and authorization requirement.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Metadata {
     /// The URL endpoint for the request.
@@ -56,7 +57,8 @@ pub enum AuthRequirement {
     /// No authorization required.
     #[default]
     None,
-    /// Authorization is optional. Request may behave differently based on the presence of a token.
+    /// Authorization is optional. Request may behave differently based on the
+    /// presence of a token.
     Optional,
     /// Authorization is required. Request will fail if no token is provided.
     Required,
@@ -64,8 +66,8 @@ pub enum AuthRequirement {
 
 /// Represents the universal context for an API request.
 ///
-/// This struct contains the information needed to make an API request, such as the base URL,
-/// client ID, and OAuth token if available.
+/// This struct contains the information needed to make an API request, such as
+/// the base URL, client ID, and OAuth token if available.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Context<'a> {
     /// The base URL for the API.
