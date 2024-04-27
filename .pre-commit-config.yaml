@@ -12,6 +12,6 @@ repos:
       - id: forbid-submodules
       - id: mixed-line-ending
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.15.0
+    rev: v3.24.0
     hooks:
       - id: commitizen
