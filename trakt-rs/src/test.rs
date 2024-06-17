@@ -3,7 +3,17 @@ use trakt_core::{
     Context, Request, Response,
 };
 
-pub fn assert_request<R, T>(ctx: Context, req: R, exp_url: &str, exp_body: &T)
+macro_rules! assert_req {
+    ($ctx: expr, $req: expr, $exp_url: expr, $exp_body: expr $(,)?) => {
+        $crate::test::assert_request($ctx, $req, $exp_url, $exp_body, true);
+    };
+    ($ctx: expr, $req: expr, $exp_url: expr, $exp_body: expr, $json: expr $(,)?) => {
+        $crate::test::assert_request($ctx, $req, $exp_url, $exp_body, $json);
+    };
+}
+pub(crate) use assert_req;
+
+pub fn assert_request<R, T>(ctx: Context, req: R, exp_url: &str, exp_body: &T, json: bool)
 where
     R: Request,
     T: ToString + ?Sized,
@@ -28,10 +38,16 @@ where
         );
     }
 
-    assert_eq!(
-        String::from_utf8_lossy(http_req.body()),
-        exp_body.to_string()
-    );
+    if json {
+        let actual = serde_json::from_slice::<serde_json::Value>(http_req.body()).unwrap();
+        let expected = serde_json::from_str::<serde_json::Value>(&exp_body.to_string()).unwrap();
+        assert_eq!(actual, expected);
+    } else {
+        assert_eq!(
+            String::from_utf8_lossy(http_req.body()),
+            exp_body.to_string()
+        );
+    }
 }
 
 pub fn execute<R: Request>(ctx: Context, req: R) -> Result<R::Response, Error> {

@@ -11,14 +11,14 @@ pub mod token {
     use bytes::BufMut;
     use trakt_core::{error::IntoHttpError, Context, Metadata};
 
-    #[derive(Debug, Clone, Eq, PartialEq)]
-    pub struct Request {
-        pub code: String,
-        pub client_secret: String,
-        pub redirect_uri: String,
+    #[derive(Debug, Copy, Clone, Eq, PartialEq)]
+    pub struct Request<'a> {
+        pub code: &'a str,
+        pub client_secret: &'a str,
+        pub redirect_uri: &'a str,
     }
 
-    impl trakt_core::Request for Request {
+    impl trakt_core::Request for Request<'_> {
         type Response = Response;
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/token",
@@ -30,16 +30,25 @@ pub mod token {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
+            #[derive(Debug, serde::Serialize)]
+            struct Body<'a> {
+                code: &'a str,
+                client_id: &'a str,
+                client_secret: &'a str,
+                redirect_uri: &'a str,
+                grant_type: &'a str,
+            }
+
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = serde_json::json!({
-                "code": self.code,
-                "client_id": ctx.client_id,
-                "client_secret": self.client_secret,
-                "redirect_uri": self.redirect_uri,
-                "grant_type": "authorization_code",
-            });
+            let json = Body {
+                code: self.code,
+                client_id: ctx.client_id,
+                client_secret: self.client_secret,
+                redirect_uri: self.redirect_uri,
+                grant_type: "authorization_code",
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
@@ -65,14 +74,14 @@ pub mod exchange {
     use bytes::BufMut;
     use trakt_core::{error::IntoHttpError, Context, Metadata};
 
-    #[derive(Debug, Clone, Eq, PartialEq)]
-    pub struct Request {
-        pub refresh_token: String,
-        pub client_secret: String,
-        pub redirect_uri: String,
+    #[derive(Debug, Copy, Clone, Eq, PartialEq)]
+    pub struct Request<'a> {
+        pub refresh_token: &'a str,
+        pub client_secret: &'a str,
+        pub redirect_uri: &'a str,
     }
 
-    impl trakt_core::Request for Request {
+    impl trakt_core::Request for Request<'_> {
         type Response = Response;
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/token",
@@ -84,16 +93,25 @@ pub mod exchange {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
+            #[derive(Debug, serde::Serialize)]
+            struct Body<'a> {
+                refresh_token: &'a str,
+                client_id: &'a str,
+                client_secret: &'a str,
+                redirect_uri: &'a str,
+                grant_type: &'a str,
+            }
+
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = serde_json::json!({
-                "refresh_token": self.refresh_token,
-                "client_id": ctx.client_id,
-                "client_secret": self.client_secret,
-                "redirect_uri": self.redirect_uri,
-                "grant_type": "refresh_token",
-            });
+            let json = Body {
+                refresh_token: self.refresh_token,
+                client_id: ctx.client_id,
+                client_secret: self.client_secret,
+                redirect_uri: self.redirect_uri,
+                grant_type: "refresh_token",
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
@@ -119,13 +137,13 @@ pub mod revoke {
     use bytes::BufMut;
     use trakt_core::{error::IntoHttpError, Context, Metadata};
 
-    #[derive(Debug, Clone, Eq, PartialEq)]
-    pub struct Request {
-        pub token: String,
-        pub client_secret: String,
+    #[derive(Debug, Copy, Clone, Eq, PartialEq)]
+    pub struct Request<'a> {
+        pub token: &'a str,
+        pub client_secret: &'a str,
     }
 
-    impl trakt_core::Request for Request {
+    impl trakt_core::Request for Request<'_> {
         type Response = Response;
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/revoke",
@@ -137,14 +155,21 @@ pub mod revoke {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
+            #[derive(Debug, serde::Serialize)]
+            struct Body<'a> {
+                token: &'a str,
+                client_id: &'a str,
+                client_secret: &'a str,
+            }
+
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = serde_json::json!({
-                "token": self.token,
-                "client_id": ctx.client_id,
-                "client_secret": self.client_secret,
-            });
+            let json = Body {
+                token: self.token,
+                client_id: ctx.client_id,
+                client_secret: self.client_secret,
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
@@ -178,12 +203,17 @@ pub mod device_code {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
+            #[derive(Debug, serde::Serialize)]
+            struct Body<'a> {
+                client_id: &'a str,
+            }
+
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = serde_json::json!({
-                "client_id": ctx.client_id,
-            });
+            let json = Body {
+                client_id: ctx.client_id,
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
@@ -208,13 +238,13 @@ pub mod poll_token {
     use bytes::BufMut;
     use trakt_core::{error::IntoHttpError, Context, Metadata};
 
-    #[derive(Debug, Clone, Eq, PartialEq)]
-    pub struct Request {
-        pub device_code: String,
-        pub client_secret: String,
+    #[derive(Debug, Copy, Clone, Eq, PartialEq)]
+    pub struct Request<'a> {
+        pub device_code: &'a str,
+        pub client_secret: &'a str,
     }
 
-    impl trakt_core::Request for Request {
+    impl trakt_core::Request for Request<'_> {
         type Response = Response;
         const METADATA: Metadata = Metadata {
             endpoint: "/oauth/device/token",
@@ -226,14 +256,21 @@ pub mod poll_token {
             self,
             ctx: Context,
         ) -> Result<http::Request<T>, IntoHttpError> {
+            #[derive(Debug, serde::Serialize)]
+            struct Body<'a> {
+                code: &'a str,
+                client_id: &'a str,
+                client_secret: &'a str,
+            }
+
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = serde_json::json!({
-                "code": self.device_code,
-                "client_id": ctx.client_id,
-                "client_secret": self.client_secret,
-            });
+            let json = Body {
+                code: self.device_code,
+                client_id: ctx.client_id,
+                client_secret: self.client_secret,
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
@@ -262,7 +299,7 @@ mod tests {
     use trakt_core::Context;
 
     use super::*;
-    use crate::test::assert_request;
+    use crate::test::assert_req;
 
     const CTX: Context = Context {
         base_url: "https://api.trakt.tv",
@@ -280,11 +317,11 @@ mod tests {
             "grant_type": "authorization_code",
         });
         let req = token::Request {
-            code: "code".to_owned(),
-            client_secret: "secret".to_owned(),
-            redirect_uri: "https://localhost:8080".to_owned(),
+            code: "code",
+            client_secret: "secret",
+            redirect_uri: "https://localhost:8080",
         };
-        assert_request(CTX, req, "https://api.trakt.tv/oauth/token", &expected);
+        assert_req!(CTX, req, "https://api.trakt.tv/oauth/token", &expected);
     }
 
     #[test]
@@ -297,11 +334,11 @@ mod tests {
             "grant_type": "refresh_token",
         });
         let req = exchange::Request {
-            refresh_token: "token".to_owned(),
-            client_secret: "secret".to_owned(),
-            redirect_uri: "https://localhost:8080".to_owned(),
+            refresh_token: "token",
+            client_secret: "secret",
+            redirect_uri: "https://localhost:8080",
         };
-        assert_request(CTX, req, "https://api.trakt.tv/oauth/token", &expected);
+        assert_req!(CTX, req, "https://api.trakt.tv/oauth/token", &expected);
     }
 
     #[test]
@@ -312,10 +349,10 @@ mod tests {
             "client_secret": "secret",
         });
         let req = revoke::Request {
-            token: "token".to_owned(),
-            client_secret: "secret".to_owned(),
+            token: "token",
+            client_secret: "secret",
         };
-        assert_request(CTX, req, "https://api.trakt.tv/oauth/revoke", &expected);
+        assert_req!(CTX, req, "https://api.trakt.tv/oauth/revoke", &expected);
     }
 
     #[test]
@@ -324,7 +361,7 @@ mod tests {
             "client_id": CTX.client_id,
         });
         let req = device_code::Request;
-        assert_request(
+        assert_req!(
             CTX,
             req,
             "https://api.trakt.tv/oauth/device/code",
@@ -340,10 +377,10 @@ mod tests {
             "client_secret": "secret",
         });
         let req = poll_token::Request {
-            device_code: "code".to_owned(),
-            client_secret: "secret".to_owned(),
+            device_code: "code",
+            client_secret: "secret",
         };
-        assert_request(
+        assert_req!(
             CTX,
             req,
             "https://api.trakt.tv/oauth/device/token",

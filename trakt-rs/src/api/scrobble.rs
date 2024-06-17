@@ -4,21 +4,41 @@
 
 use serde::Deserialize;
 
-use crate::smo::{Episode, Movie, Sharing, Show};
+use crate::smo::{Episode, Ids, Movie, Sharing, Show};
+
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
+enum BodyInner {
+    Movie { ids: Ids },
+    Episode { ids: Ids },
+}
+
+#[derive(Debug, serde::Serialize)]
+struct Body {
+    #[serde(flatten)]
+    inner: BodyInner,
+    progress: f64,
+}
 
 mod _private {
     use crate::smo::{Episode, Movie};
 
+    #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+    pub enum CheckinItemType {
+        Movie,
+        Episode,
+    }
+
     pub trait Sealed {
-        const KEY: &'static str;
+        const KEY: CheckinItemType;
     }
 
     impl Sealed for Movie {
-        const KEY: &'static str = "movie";
+        const KEY: CheckinItemType = CheckinItemType::Movie;
     }
 
     impl Sealed for Episode {
-        const KEY: &'static str = "episode";
+        const KEY: CheckinItemType = CheckinItemType::Episode;
     }
 }
 
@@ -69,10 +89,9 @@ pub mod start {
     //! <https://trakt.docs.apiary.io/#reference/scrobble/start/start-watching-in-a-media-center>
 
     use bytes::BufMut;
-    use serde_json::{json, Value};
     use trakt_core::{error::IntoHttpError, Context, Metadata};
 
-    use super::ScrobbleItem;
+    use super::{Body, BodyInner, ScrobbleItem, _private::CheckinItemType};
     use crate::smo::{Episode, Id, Ids, Movie};
 
     #[derive(Debug, Clone, PartialEq)]
@@ -125,12 +144,17 @@ pub mod start {
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = Value::Object({
-                let mut map = serde_json::Map::new();
-                map.insert(I::KEY.to_owned(), json!({ "ids": Ids::from(self.id) }));
-                map.insert("progress".to_owned(), json!(self.progress));
-                map
-            });
+            let json = Body {
+                inner: match I::KEY {
+                    CheckinItemType::Movie => BodyInner::Movie {
+                        ids: Ids::from(self.id),
+                    },
+                    CheckinItemType::Episode => BodyInner::Episode {
+                        ids: Ids::from(self.id),
+                    },
+                },
+                progress: self.progress,
+            };
 
             serde_json::to_writer(&mut writer, &json)?;
 
@@ -145,9 +169,9 @@ pub mod pause {
     //! <https://trakt.docs.apiary.io/#reference/scrobble/pause/pause-watching-in-a-media-center>
 
     use bytes::BufMut;
-    use serde_json::{json, Value};
     use trakt_core::{error::IntoHttpError, Context, Metadata};
 
+    use super::{Body, BodyInner, _private::CheckinItemType};
     use crate::{
         api::scrobble::ScrobbleItem,
         smo::{Episode, Id, Ids, Movie},
@@ -203,13 +227,17 @@ pub mod pause {
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = Value::Object({
-                let mut map = serde_json::Map::new();
-                map.insert(I::KEY.to_owned(), json!({ "ids": Ids::from(self.id) }));
-                map.insert("progress".to_owned(), json!(self.progress));
-                map
-            });
-
+            let json = Body {
+                inner: match I::KEY {
+                    CheckinItemType::Movie => BodyInner::Movie {
+                        ids: Ids::from(self.id),
+                    },
+                    CheckinItemType::Episode => BodyInner::Episode {
+                        ids: Ids::from(self.id),
+                    },
+                },
+                progress: self.progress,
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
@@ -223,9 +251,9 @@ pub mod stop {
     //! <https://trakt.docs.apiary.io/#reference/scrobble/stop/stop-or-finish-watching-in-a-media-center>
 
     use bytes::BufMut;
-    use serde_json::{json, Value};
     use trakt_core::{error::IntoHttpError, Context, Metadata};
 
+    use super::{Body, BodyInner, _private::CheckinItemType};
     use crate::{
         api::scrobble::ScrobbleItem,
         smo::{Episode, Id, Ids, Movie},
@@ -281,13 +309,17 @@ pub mod stop {
             let body = T::default();
             let mut writer = body.writer();
 
-            let json = Value::Object({
-                let mut map = serde_json::Map::new();
-                map.insert(I::KEY.to_owned(), json!({ "ids": Ids::from(self.id) }));
-                map.insert("progress".to_owned(), json!(self.progress));
-                map
-            });
-
+            let json = Body {
+                inner: match I::KEY {
+                    CheckinItemType::Movie => BodyInner::Movie {
+                        ids: Ids::from(self.id),
+                    },
+                    CheckinItemType::Episode => BodyInner::Episode {
+                        ids: Ids::from(self.id),
+                    },
+                },
+                progress: self.progress,
+            };
             serde_json::to_writer(&mut writer, &json)?;
 
             trakt_core::construct_req(&ctx, &Self::METADATA, &(), &(), writer.into_inner())
@@ -301,7 +333,7 @@ pub mod tests {
     use trakt_core::Context;
 
     use super::*;
-    use crate::{smo::Id, test::assert_request};
+    use crate::{smo::Id, test::assert_req};
 
     const CTX: Context = Context {
         base_url: "https://api.trakt.tv",
@@ -316,14 +348,14 @@ pub mod tests {
             "progress": 0.0
         });
         let req = start::Request::new_movie(Id::Trakt(1), 0.0);
-        assert_request(CTX, req, "https://api.trakt.tv/scrobble/start", &exp);
+        assert_req!(CTX, req, "https://api.trakt.tv/scrobble/start", &exp);
 
         let exp = json!({
             "episode": { "ids": { "slug": "abc" } },
             "progress": 5.0
         });
         let req = start::Request::new_episode(Id::Slug("abc".into()), 5.0);
-        assert_request(CTX, req, "https://api.trakt.tv/scrobble/start", &exp);
+        assert_req!(CTX, req, "https://api.trakt.tv/scrobble/start", &exp);
     }
 
     #[test]
@@ -333,14 +365,14 @@ pub mod tests {
             "progress": 0.0
         });
         let req = pause::Request::new_movie(Id::Tvdb(1), 0.0);
-        assert_request(CTX, req, "https://api.trakt.tv/scrobble/pause", &exp);
+        assert_req!(CTX, req, "https://api.trakt.tv/scrobble/pause", &exp);
 
         let exp = json!({
             "episode": { "ids": { "imdb": "tt12345" } },
             "progress": 10.0
         });
         let req = pause::Request::new_episode(Id::Imdb("tt12345".into()), 10.0);
-        assert_request(CTX, req, "https://api.trakt.tv/scrobble/pause", &exp);
+        assert_req!(CTX, req, "https://api.trakt.tv/scrobble/pause", &exp);
     }
 
     #[test]
@@ -350,13 +382,13 @@ pub mod tests {
             "progress": 0.0
         });
         let req = stop::Request::new_movie(Id::Tmdb(1), 0.0);
-        assert_request(CTX, req, "https://api.trakt.tv/scrobble/stop", &exp);
+        assert_req!(CTX, req, "https://api.trakt.tv/scrobble/stop", &exp);
 
         let exp = json!({
             "episode": { "ids": { "slug": "abc" } },
             "progress": 50.0
         });
         let req = stop::Request::new_episode(Id::Slug("abc".into()), 50.0);
-        assert_request(CTX, req, "https://api.trakt.tv/scrobble/stop", &exp);
+        assert_req!(CTX, req, "https://api.trakt.tv/scrobble/stop", &exp);
     }
 }
